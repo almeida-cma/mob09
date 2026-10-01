@@ -5,9 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🎓 Adicionando o Campo Idade ao CRUD (HTML + JS Puro)</title>
     <style>
-        /* ============================================================
-           ESTILOS DO AMBIENTE DIDÁTICO
-           ============================================================ */
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
@@ -73,7 +70,6 @@
         }
         .overlay-menu.ativo { opacity: 1; pointer-events: auto; }
 
-        /* SIDEBAR */
         .sidebar {
             width: 320px;
             background: #1e293b;
@@ -141,7 +137,6 @@
             font-weight: 800;
         }
 
-        /* MAIN */
         .main {
             margin-left: 320px;
             flex: 1;
@@ -232,7 +227,6 @@
             box-shadow: 0 6px 16px rgba(56,189,248,0.3);
         }
 
-        /* PREVIEW */
         .preview-wrapper {
             background: #020617;
             border-radius: 12px;
@@ -273,7 +267,6 @@
             display: block;
         }
 
-        /* ABAS */
         .abas {
             display: flex;
             gap: 4px;
@@ -332,7 +325,6 @@
             max-height: 480px;
         }
 
-        /* QUIZ */
         .card-quiz {
             background: #1e293b;
             border-radius: 12px;
@@ -366,7 +358,6 @@
         .painel-feedback.correto { background: rgba(16, 185, 129, 0.15); border: 1px solid #10b981; color: #6ee7b7; }
         .painel-feedback.incorreto { background: rgba(239, 68, 68, 0.15); border: 1px solid #ef4444; color: #fca5a5; }
 
-        /* RELATÓRIO PDF */
         #painelRelatorioFinal {
             display: none;
             background: #1e293b;
@@ -485,6 +476,7 @@ function persistir() {
 
 // ---------- READ ----------
 function listar() {
+    const lista = document.getElementById("lista");
     lista.innerHTML = "";
     alunos.forEach(a => {
         lista.innerHTML += \`<tr>
@@ -498,6 +490,9 @@ function listar() {
 
 // ---------- CREATE / UPDATE ----------
 function salvar() {
+    const nome  = document.getElementById("nome");
+    const email = document.getElementById("email");
+
     if (idEditando) {
         const a = alunos.find(x => x.id === idEditando);
         a.nome  = nome.value;
@@ -513,6 +508,8 @@ function salvar() {
 
 // ---------- EDIT ----------
 function editar(id) {
+    const nome  = document.getElementById("nome");
+    const email = document.getElementById("email");
     const a = alunos.find(x => x.id === id);
     nome.value  = a.nome;
     email.value = a.email;
@@ -584,10 +581,12 @@ carregar();`
             nome: 'Degrau 2: A Camada HTML (Input e Coluna)',
             icone: '🟢',
             nivel: '🟢 Passo 1: Interface Declarativa',
-            missao: 'No padrão do seu script, cada `<input id="...">` gera automaticamente uma variável global no navegador acessível por seu identificador. Portanto, adicionamos `<input id="idade" type="number" placeholder="Idade">` e a coluna `<th>Idade</th>` na tabela.',
+            missao: 'No padrão do seu script, cada `<input id="...">` gera automaticamente uma variável global no navegador acessível por seu identificador. Portanto, adicionamos `<input id="idade" type="number" placeholder="Idade">` e a coluna `<th>Idade</th>` na tabela. <strong>O JavaScript ainda é o mesmo do Degrau 1</strong> — apenas o HTML mudou. O preview mostra a coluna aguardando a lógica.',
             modificacao: `Alterações no HTML:
 1. Inserir: <span class="novo">&lt;input id="idade" type="number" placeholder="Idade"&gt;</span> ao lado de email.
-2. Inserir: <span class="novo">&lt;th&gt;Idade&lt;/th&gt;</span> antes de &lt;th&gt;Ações&lt;/th&gt;.`,
+2. Inserir: <span class="novo">&lt;th&gt;Idade&lt;/th&gt;</span> antes de &lt;th&gt;Ações&lt;/th&gt;.
+
+O JS permanece idêntico ao Degrau 1.`,
             html: `<h1>Alunos</h1>
 
 <input id="nome" placeholder="Nome">
@@ -607,22 +606,119 @@ carregar();`
 <tr><th>ID</th><th>Nome</th><th>E-mail</th><th>Idade</th><th>Ações</th></tr>
 <tbody id="lista"></tbody>
 </table>`,
-            js: `// O JS ainda é o original neste degrau!
-// Veja no preview que a tabela agora tem a coluna "Idade", aguardando a lógica do JS.
-let alunos = [{ id: 1, nome: "Carlos", email: "carlos@teste.com" }];
+            js: `// ============================================================
+// O JS é EXATAMENTE o mesmo do Degrau 1.
+// A coluna "Idade" existe no HTML, mas o JS ainda não a manipula.
+// ============================================================
+let alunos = [];          // array de objetos { id, nome, email }
 let idEditando = null;
-let proximoId = 2;
+let proximoId = 1;
+
+const CHAVE = "alunos.json";
+
+function carregar() {
+    const salvo = localStorage.getItem(CHAVE);
+    if (salvo) {
+        alunos = JSON.parse(salvo);
+        proximoId = alunos.length ? Math.max(...alunos.map(a => a.id)) + 1 : 1;
+    }
+    listar();
+}
+
+function persistir() {
+    localStorage.setItem(CHAVE, JSON.stringify(alunos));
+}
 
 function listar() {
+    const lista = document.getElementById("lista");
     lista.innerHTML = "";
     alunos.forEach(a => {
+        // A coluna Idade aparece, mas o valor ainda não existe no objeto
         lista.innerHTML += \`<tr>
             <td>\${a.id}</td><td>\${a.nome}</td><td>\${a.email}</td>
             <td style="color:gray;">(aguardando JS)</td>
-            <td><button disabled>Editar</button></td></tr>\`;
+            <td>
+                <button onclick="editar(\${a.id})">Editar</button>
+                <button onclick="excluir(\${a.id})">Excluir</button>
+            </td></tr>\`;
     });
 }
-listar();`
+
+function salvar() {
+    const nome  = document.getElementById("nome");
+    const email = document.getElementById("email");
+
+    if (idEditando) {
+        const a = alunos.find(x => x.id === idEditando);
+        a.nome  = nome.value;
+        a.email = email.value;
+        idEditando = null;
+    } else {
+        alunos.push({ id: proximoId++, nome: nome.value, email: email.value });
+    }
+    nome.value = email.value = "";
+    persistir();
+    listar();
+}
+
+function editar(id) {
+    const nome  = document.getElementById("nome");
+    const email = document.getElementById("email");
+    const a = alunos.find(x => x.id === id);
+    nome.value  = a.nome;
+    email.value = a.email;
+    idEditando  = id;
+}
+
+function excluir(id) {
+    if (confirm("Excluir aluno?")) {
+        alunos = alunos.filter(a => a.id !== id);
+        persistir();
+        listar();
+    }
+}
+
+function exportar() {
+    const texto = JSON.stringify(alunos, null, 2);
+    const blob  = new Blob([texto], { type: "application/json" });
+    const a     = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "alunos.json";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(a.href);
+}
+
+function importar(evento) {
+    const arquivo = evento.target.files[0];
+    if (!arquivo) return;
+    const leitor = new FileReader();
+    leitor.onload = () => {
+        try {
+            const dados = JSON.parse(leitor.result);
+            if (!Array.isArray(dados)) throw new Error("O JSON não é uma lista.");
+            alunos = dados;
+            proximoId = alunos.length ? Math.max(...alunos.map(a => a.id)) + 1 : 1;
+            persistir();
+            listar();
+            alert("Importado com sucesso!");
+        } catch (e) {
+            alert("Arquivo inválido: " + e.message);
+        }
+    };
+    leitor.readAsText(arquivo);
+}
+
+function resetar() {
+    if (!confirm("Apagar tudo?")) return;
+    localStorage.removeItem(CHAVE);
+    alunos = [];
+    proximoId = 1;
+    listar();
+}
+
+carregar();`
         },
 
         // ==================== DEGRAU 3 ====================
@@ -631,14 +727,14 @@ listar();`
             nome: 'Degrau 3: Inserção e Leitura (Create & Read)',
             icone: '🟡',
             nivel: '🟡 Passo 2: Lógica em Memória',
-            missao: 'No JS do seu script, lemos o campo diretamente com <code>idade.value</code>. No <code>salvar()</code> adicionamos <code>idade: idade.value</code> no objeto, incluímos a limpeza <code>idade.value = ""</code> e na função <code>listar()</code> desenhamos a célula <code>&lt;td&gt;\${a.idade ?? "-"}&lt;/td&gt;</code>.',
+            missao: 'Agora damos vida ao campo. No JS, lemos o valor diretamente com <code>document.getElementById("idade").value</code> (ou pelo atalho global <code>idade.value</code>). No <code>salvar()</code>, adicionamos <code>idade: idade.value</code> ao objeto. Na função <code>listar()</code>, desenhamos a célula com <code>a.idade || "-"</code> para tratar valores vazios.',
             modificacao: `Alterações cirúrgicas no JavaScript:
 1. Em salvar() [criação]:
    alunos.push({ id: proximoId++, nome: nome.value, email: email.value, <span class="novo">idade: idade.value</span> });
    nome.value = email.value = <span class="novo">idade.value = ""</span>;
 
 2. Em listar() [leitura]:
-   lista.innerHTML += \`... &lt;td&gt;\${a.email}&lt;/td&gt;<span class="novo">&lt;td&gt;\${a.idade ?? "-"}&lt;/td&gt;</span>...\`;`,
+   lista.innerHTML += \`... &lt;td&gt;\${a.email}&lt;/td&gt;<span class="novo">&lt;td&gt;\${a.idade || "-"}&lt;/td&gt;</span>...\`;`,
             html: `<h1>Alunos</h1>
 
 <input id="nome" placeholder="Nome">
@@ -666,6 +762,7 @@ function persistir() {
 }
 
 function listar() {
+    const lista = document.getElementById("lista");
     lista.innerHTML = "";
     alunos.forEach(a => {
         lista.innerHTML += \`<tr>
@@ -673,12 +770,16 @@ function listar() {
             <td>\${a.nome}</td>
             <td>\${a.email}</td>
             <!-- Renderiza idade ou traço caso vazio -->
-            <td>\${a.idade ?? "-"}</td>
+            <td>\${a.idade || "-"}</td>
             <td><button disabled>Aguardando Passo 4</button></td></tr>\`;
     });
 }
 
 function salvar() {
+    const nome  = document.getElementById("nome");
+    const email = document.getElementById("email");
+    const idade = document.getElementById("idade");
+
     if (!nome.value) return alert("Preencha o nome!");
 
     // Adiciona o objeto com idade:
@@ -704,7 +805,7 @@ listar();`
             nome: 'Degrau 4: Sistema Completo (Update, I/O e Reset)',
             icone: '🔵',
             nivel: '🔵 Passo 3: O Sistema 100% Integrado',
-            missao: 'Finalizamos o ciclo completo no seu modelo original: ensinamos a função <code>editar(id)</code> a carregar o valor com <code>idade.value = a.idade || "";</code> e a função <code>salvar()</code> a atualizar o objeto quando em edição com <code>a.idade = idade.value;</code>. O LocalStorage, Exportação e Importação funcionam sem precisar de alteração!',
+            missao: 'Finalizamos o ciclo completo: ensinamos a função <code>editar(id)</code> a carregar a idade com <code>idade.value = a.idade || "";</code> e a função <code>salvar()</code> a atualizar o objeto quando em edição com <code>a.idade = idade.value;</code>. O LocalStorage, Exportação e Importação funcionam sem precisar de alteração!',
             modificacao: `Alterações finais no JavaScript:
 1. Em editar(id):
    <span class="novo">idade.value = a.idade || "";</span>
@@ -754,13 +855,14 @@ function persistir() {
 
 // ---------- READ ----------
 function listar() {
+    const lista = document.getElementById("lista");
     lista.innerHTML = "";
     alunos.forEach(a => {
         lista.innerHTML += \`<tr>
             <td>\${a.id}</td>
             <td>\${a.nome}</td>
             <td>\${a.email}</td>
-            <td>\${a.idade ?? "-"}</td>
+            <td>\${a.idade || "-"}</td>
             <td>
                 <button onclick="editar(\${a.id})">Editar</button>
                 <button onclick="excluir(\${a.id})">Excluir</button>
@@ -770,6 +872,10 @@ function listar() {
 
 // ---------- CREATE / UPDATE ----------
 function salvar() {
+    const nome  = document.getElementById("nome");
+    const email = document.getElementById("email");
+    const idade = document.getElementById("idade");
+
     if (idEditando) {
         const a = alunos.find(x => x.id === idEditando);
         a.nome  = nome.value;
@@ -791,6 +897,9 @@ function salvar() {
 
 // ---------- EDIT ----------
 function editar(id) {
+    const nome  = document.getElementById("nome");
+    const email = document.getElementById("email");
+    const idade = document.getElementById("idade");
     const a = alunos.find(x => x.id === id);
     nome.value  = a.nome;
     email.value = a.email;
@@ -916,16 +1025,16 @@ carregar();`
         },
         {
             id: 5,
-            titulo: "Operador Nullish Coalescing na Leitura",
-            enunciado: "Na função <code>listar()</code>, utilizamos <code>\${a.idade ?? \"-\"}</code> para renderizar a idade. O que o operador <code>??</code> faz nesse caso?",
+            titulo: "Operador de Fallback na Leitura",
+            enunciado: "Na função <code>listar()</code>, utilizamos <code>\${a.idade || \"-\"}</code> para renderizar a idade. Por que usamos <code>||</code> em vez de <code>??</code> nesse caso?",
             alternativas: [
-                { id: "A", texto: "Se a propriedade <code>idade</code> for <code>null</code> ou <code>undefined</code> (ex: registros antigos), exibe <code>\"-\"</code> em vez da palavra 'undefined'." },
-                { id: "B", texto: "Ele converte automaticamente o texto da idade em número inteiro." },
-                { id: "C", texto: "Ele soma a idade com o próximo ID do aluno." },
-                { id: "D", texto: "Ele lança um erro caso a idade esteja em branco." }
+                { id: "A", texto: "Porque <code>||</code> trata tanto <code>null</code>/<code>undefined</code> quanto a string vazia <code>\"\"</code>, exibindo <code>\"-\"</code> em todos os casos de campo não preenchido." },
+                { id: "B", texto: "Porque <code>??</code> não existe em JavaScript." },
+                { id: "C", texto: "Porque <code>||</code> é mais rápido que <code>??</code>." },
+                { id: "D", texto: "Porque <code>??</code> só funciona com números." }
             ],
             correta: "A",
-            explicacao: "O operador <code>??</code> (nullish coalescing) fornece um valor de fallback seguro para propriedades inexistentes ou nulas, garantindo compatibilidade com backups antigos."
+            explicacao: "O operador <code>??</code> (nullish coalescing) só trata <code>null</code> e <code>undefined</code>. Como o input vazio grava <code>\"\"</code>, o <code>??</code> não ativaria o fallback. Já o <code>||</code> considera <code>\"\"</code> como falsy e exibe <code>\"-\"</code>."
         },
         {
             id: 6,
@@ -999,7 +1108,6 @@ carregar();`
        ============================================================ */
     const navDegraus = document.getElementById('navDegraus');
     const conteudoPrincipal = document.getElementById('conteudoPrincipal');
-    let degrauAtivoId = DEGRAUS[0].id;
     let htmlCompletoAtual = '';
     const respostasQuiz = {};
 
@@ -1014,13 +1122,12 @@ carregar();`
     });
 
     function mostrarDegrau(id) {
-        degrauAtivoId = id;
         const deg = DEGRAUS.find(d => d.id === id);
         if (!deg) return;
 
         // Atualiza sidebar
         document.querySelectorAll('.sidebar-item').forEach(b => b.classList.remove('ativo'));
-        const btnAtivo = document.querySelector(`.sidebar-item[dataset-id="${id}"], .sidebar-item[data-id="${id}"]`);
+        const btnAtivo = document.querySelector(`.sidebar-item[data-id="${id}"]`);
         if (btnAtivo) btnAtivo.classList.add('ativo');
 
         fecharMenu();
@@ -1044,6 +1151,11 @@ ${deg.js}
 </html>`;
 
         htmlCompletoAtual = htmlCompleto;
+
+        // Escapa o HTML para exibição segura dentro do template literal
+        const htmlEscapado = escapeHtml(deg.html);
+        const jsEscapado = escapeHtml(deg.js);
+        const completoEscapado = escapeHtml(htmlCompleto);
 
         conteudoPrincipal.innerHTML = `
             <div class="main-header">
@@ -1087,15 +1199,15 @@ ${deg.js}
 
             <div class="bloco-codigo ativo" id="aba-html">
                 <button class="btn-copiar" onclick="copiarAba('aba-html', this)">📋 Copiar HTML</button>
-                <pre>${escapeHtml(deg.html)}</pre>
+                <pre>${htmlEscapado}</pre>
             </div>
             <div class="bloco-codigo" id="aba-js">
                 <button class="btn-copiar" onclick="copiarAba('aba-js', this)">📋 Copiar JS</button>
-                <pre>${escapeHtml(deg.js)}</pre>
+                <pre>${jsEscapado}</pre>
             </div>
             <div class="bloco-codigo" id="aba-tudo">
                 <button class="btn-copiar" onclick="copiarAba('aba-tudo', this)">📋 Copiar Tudo</button>
-                <pre>${escapeHtml(htmlCompleto)}</pre>
+                <pre>${completoEscapado}</pre>
             </div>
         `;
 
@@ -1118,8 +1230,9 @@ ${deg.js}
                 const checked = resp === alt.id ? 'checked' : '';
                 const classeSel = resp === alt.id ? 'selecionada' : '';
                 opcoes += `
-                    <label class="opcao-item ${classeSel}" onclick="responderQuestao(${q.id}, '${alt.id}')">
-                        <input type="radio" name="q_${q.id}" value="${alt.id}" ${checked}>
+                    <label class="opcao-item ${classeSel}">
+                        <input type="radio" name="q_${q.id}" value="${alt.id}" ${checked}
+                               onchange="responderQuestao(${q.id}, '${alt.id}')">
                         <div><strong>${alt.id})</strong> ${alt.texto}</div>
                     </label>
                 `;
@@ -1196,7 +1309,31 @@ ${deg.js}
 
     function responderQuestao(qId, altId) {
         respostasQuiz[qId] = altId;
-        mostrarQuiz();
+        // Atualiza apenas o feedback e o destaque da questão, sem re-renderizar tudo
+        const card = document.querySelector(`.card-quiz:nth-of-type(${qId})`);
+        const questao = QUESTOES_QUIZ.find(q => q.id === qId);
+        if (!card || !questao) return;
+
+        // Atualiza seleção visual
+        card.querySelectorAll('.opcao-item').forEach(label => {
+            const input = label.querySelector('input');
+            if (input.value === altId) label.classList.add('selecionada');
+            else label.classList.remove('selecionada');
+        });
+
+        // Atualiza feedback
+        const acertou = altId === questao.correta;
+        let feedbackDiv = card.querySelector('.painel-feedback');
+        if (!feedbackDiv) {
+            feedbackDiv = document.createElement('div');
+            card.appendChild(feedbackDiv);
+        }
+        feedbackDiv.className = `painel-feedback ${acertou ? 'correto' : 'incorreto'}`;
+        feedbackDiv.style.display = 'block';
+        feedbackDiv.innerHTML = `
+            <strong>${acertou ? '✅ Correto!' : '❌ Incorreto!'} (Gabarito: ${questao.correta})</strong>
+            ${questao.explicacao}
+        `;
     }
 
     function gerarRelatorioPDF() {
@@ -1246,6 +1383,10 @@ ${deg.js}
 
     // UTILITÁRIOS
     function abrirEmNovaAba() {
+        if (!htmlCompletoAtual) {
+            alert("Nenhum degrau carregado para abrir.");
+            return;
+        }
         const blob = new Blob([htmlCompletoAtual], { type: 'text/html' });
         const url = URL.createObjectURL(blob);
         window.open(url, '_blank');
@@ -1267,11 +1408,17 @@ ${deg.js}
         });
     }
 
+    /**
+     * Escapa caracteres especiais para exibição segura dentro de template literals.
+     * Escapa: & < > ` $ (para evitar quebra do template literal externo)
+     */
     function escapeHtml(txt) {
-        return txt
+        return String(txt)
             .replace(/&/g, '&amp;')
             .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;');
+            .replace(/>/g, '&gt;')
+            .replace(/`/g, '&#96;')
+            .replace(/\$/g, '&#36;');
     }
 
     function toggleMenu() {

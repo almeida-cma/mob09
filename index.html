@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TEMA 09 - Base de Dados: Armazenamento Local e CRUD</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background: #ffffff;
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        /* ===== CABEÇALHO ===== */
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #14b8a6;
+        }
+
+        .header h1 {
+            font-size: 2.2rem;
+            color: #1a1a2e;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .header h1 span {
+            color: #14b8a6;
+        }
+
+        .header p {
+            color: #6c757d;
+            font-size: 1rem;
+        }
+
+        .badge-tema {
+            display: inline-block;
+            background: #14b8a6;
+            color: #ffffff;
+            padding: 4px 16px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 0.8rem;
+            margin-top: 8px;
+        }
+
+        .badge-tema-dois {
+            display: inline-block;
+            background: #0ea5e9;
+            color: #ffffff;
+            padding: 2px 14px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 0.7rem;
+            margin-top: 4px;
+        }
+
+        /* ===== ITENS DO MENU ===== */
+        .menu-item {
+            display: flex;
+            align-items: flex-start;
+            padding: 16px 20px;
+            margin-bottom: 12px;
+            background: #f8f9fa;
+            border-radius: 14px;
+            border-left: 5px solid #dee2e6;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: #2c3e50;
+            position: relative;
+            flex-direction: column;
+        }
+
+        .menu-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            background: #f0fdfa;
+        }
+
+        .menu-item .linha {
+            display: flex;
+            align-items: center;
+            width: 100%;
+        }
+
+        .menu-item .icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 16px;
+            flex-shrink: 0;
+            width: 36px;
+            height: 36px;
+        }
+
+        .menu-item .info {
+            flex: 1;
+        }
+
+        .menu-item .info h3 {
+            font-size: 1.05rem;
+            font-weight: 600;
+        }
+
+        .menu-item .info p {
+            font-size: 0.85rem;
+            color: #6c757d;
+            margin-top: 2px;
+        }
+
+        .menu-item .seta {
+            font-size: 1.4rem;
+            color: #aab3cc;
+            transition: 0.3s;
+            flex-shrink: 0;
+            font-weight: bold;
+        }
+
+        .menu-item:hover .seta {
+            color: #14b8a6;
+            transform: translateX(3px);
+        }
+
+        /* ===== CORES POR ITEM ===== */
+        .menu-item.conceitos {
+            border-left-color: #14b8a6;
+        }
+
+        .menu-item.apresentacao {
+            border-left-color: #0ea5e9;
+        }
+
+        .menu-item.pratica1 {
+            border-left-color: #8b5cf6;
+        }
+
+        .menu-item.pratica2 {
+            border-left-color: #f59e0b;
+        }
+
+        .menu-item.simulado {
+            border-left-color: #dc3545;
+        }
+
+        /* ===== ETIQUETAS (BADGES) ===== */
+        .badge-atividade {
+            background: #dc3545;
+            color: #ffffff;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-left: 10px;
+            flex-shrink: 0;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            animation: pulse 2s infinite;
+        }
+
+        .badge-simulado {
+            background: #f59e0b;
+            color: #ffffff;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-left: 10px;
+            flex-shrink: 0;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.6; }
+            100% { opacity: 1; }
+        }
+
+        /* ===== DESTAQUES ===== */
+        .menu-item.destaque {
+            background: #f0fdfa;
+            border-left-color: #14b8a6;
+            border: 2px solid #14b8a6;
+        }
+
+        .menu-item.destaque:hover {
+            background: #ccfbf1;
+            box-shadow: 0 4px 20px rgba(20, 184, 166, 0.2);
+        }
+
+        .menu-item.destaque-simulado {
+            background: #fef2f2;
+            border-left-color: #dc3545;
+            border: 2px solid #dc3545;
+        }
+
+        .menu-item.destaque-simulado:hover {
+            background: #fee2e2;
+            box-shadow: 0 4px 20px rgba(220, 53, 69, 0.2);
+        }
+
+        /* ===== RODAPÉ ===== */
+        .footer {
+            margin-top: 30px;
+            padding-top: 25px;
+            border-top: 2px solid #e9ecef;
+        }
+
+        .footer h4 {
+            color: #1a1a2e;
+            font-size: 0.95rem;
+            margin-bottom: 12px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .footer-links {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            max-width: 450px;
+            margin: 0 auto;
+        }
+
+        .footer-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            text-decoration: none;
+            color: #2c3e50;
+            transition: all 0.3s;
+            border: 1px solid #e9ecef;
+            font-size: 0.9rem;
+        }
+
+        .footer-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            border-color: #14b8a6;
+        }
+
+        .footer-link .icon-box {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .footer-link .texto {
+            flex: 1;
+        }
+
+        .footer-link .texto small {
+            display: block;
+            font-size: 0.7rem;
+            color: #6c757d;
+        }
+
+        .footer-link.form {
+            border-left: 4px solid #28a745;
+        }
+
+        .footer-link.form:hover {
+            border-color: #28a745;
+        }
+
+        .footer .obs {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 0.75rem;
+            color: #6c757d;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        /* ===== RESPONSIVIDADE ===== */
+        @media (max-width: 600px) {
+            .container { padding: 20px; }
+            .header h1 { font-size: 1.5rem; }
+            .menu-item { padding: 12px 16px; }
+            .menu-item .info h3 { font-size: 0.9rem; }
+            .badge-atividade, .badge-simulado {
+                font-size: 0.5rem;
+                padding: 2px 8px;
+                margin-left: 6px;
+            }
+            .footer-links { max-width: 100%; }
+        }
+
+        @media (max-width: 400px) {
+            .container { padding: 15px; }
+            .header h1 { font-size: 1.2rem; }
+            .menu-item .info p { font-size: 0.7rem; }
+            .menu-item .seta { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <!-- ===== CABEÇALHO ===== -->
+    <header class="header">
+        <h1>
+            <!-- Ícone de Base de Dados / Armazenamento -->
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#14b8a6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <ellipse cx="12" cy="5" rx="9" ry="3"/>
+                <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/>
+                <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+            </svg>
+            TEMA <span>09</span>
+        </h1>
+        <p>Base de Dados &mdash; Armazenamento Local e CRUD</p>
+        <span class="badge-tema">LocalStorage &bull; JSON &bull; CRUD Completo</span>
+        <br>
+        <span class="badge-tema-dois">Persist&ecirc;ncia &bull; Manuten&ccedil;&atilde;o &bull; I/O de Arquivos &bull; EaD</span>
+    </header>
+
+    <!-- ===== MENU PRINCIPAL (OS 5 ITENS) ===== -->
+    <main class="menu-list">
+
+        <!-- 1) CONCEITOS (t9.html) -->
+        <a href="t9.html" target="_blank" rel="noopener noreferrer" class="menu-item conceitos destaque">
+            <div class="linha">
+                <span class="icon">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#14b8a6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+                        <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+                    </svg>
+                </span>
+                <div class="info">
+                    <h3>1) Conceitos</h3>
+                    <p>Fundamentos de persist&ecirc;ncia, LocalStorage, serializa&ccedil;&atilde;o JSON e ciclo de vida</p>
+                </div>
+                <span class="badge-atividade">ATIVIDADE</span>
+                <span class="seta">&rarr;</span>
+            </div>
+        </a>
+
+        <!-- 2) APRESENTAÇÃO (1-pratica.html) -->
+        <a href="1-pratica.html" target="_blank" rel="noopener noreferrer" class="menu-item apresentacao">
+            <div class="linha">
+                <span class="icon">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+                        <line x1="8" y1="21" x2="16" y2="21"/>
+                        <line x1="12" y1="17" x2="12" y2="21"/>
+                    </svg>
+                </span>
+                <div class="info">
+                    <h3>2) Apresenta&ccedil;&atilde;o</h3>
+                    <p>Laborat&oacute;rio interativo em 7 degraus guiados com preview em tempo real</p>
+                </div>
+                <span class="badge-atividade">ATIVIDADE</span>
+                <span class="seta">&rarr;</span>
+            </div>
+        </a>
+
+        <!-- 3) PRÁTICA CRUD 1 (0-pratica.html) -->
+        <a href="0-pratica.html" target="_blank" rel="noopener noreferrer" class="menu-item pratica1">
+            <div class="linha">
+                <span class="icon">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="16 18 22 12 16 6"/>
+                        <polyline points="8 6 2 12 8 18"/>
+                    </svg>
+                </span>
+                <div class="info">
+                    <h3>3) Pr&aacute;tica CRUD 1</h3>
+                    <p>Implementa&ccedil;&atilde;o inicial da base de dados de alunos operando em mem&oacute;ria e disco</p>
+                </div>
+                <span class="badge-atividade">ATIVIDADE</span>
+                <span class="seta">&rarr;</span>
+            </div>
+        </a>
+
+        <!-- 4) PRÁTICA CRUD 2 (2-atividade.html) -->
+        <a href="2-atividade.html" target="_blank" rel="noopener noreferrer" class="menu-item pratica2 destaque">
+            <div class="linha">
+                <span class="icon">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="12" y1="8" x2="12" y2="16"/>
+                        <line x1="8" y1="12" x2="16" y2="12"/>
+                    </svg>
+                </span>
+                <div class="info">
+                    <h3>4) Pr&aacute;tica CRUD 2</h3>
+                    <p>Manuten&ccedil;&atilde;o de esquema: acrescentando o campo idade (HTML + JS = C&oacute;digo Completo)</p>
+                </div>
+                <span class="badge-atividade">ATIVIDADE</span>
+                <span class="seta">&rarr;</span>
+            </div>
+        </a>
+
+        <!-- 5) QUESTÕES SOBRE CRUD 2 (3-quiz.html) -->
+        <a href="3-quiz.html" target="_blank" rel="noopener noreferrer" class="menu-item simulado destaque-simulado">
+            <div class="linha">
+                <span class="icon">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#dc3545" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+                        <path d="M15 2H9a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1Z"/>
+                        <path d="m9 14 2 2 4-4"/>
+                    </svg>
+                </span>
+                <div class="info">
+                    <h3>5) Quest&otilde;es sobre CRUD 2</h3>
+                    <p>Simulado t&eacute;cnico de manuten&ccedil;&atilde;o com gabarito comentado e emiss&atilde;o de relat&oacute;rio PDF</p>
+                </div>
+                <span class="badge-simulado">SIMULADO</span>
+                <span class="seta">&rarr;</span>
+            </div>
+        </a>
+
+    </main>
+
+    <!-- ===== RODAPÉ ===== -->
+    <footer class="footer">
+
+        <h4>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1a1a2e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+                <path d="M15 2H9a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1Z"/>
+            </svg>
+            Formul&aacute;rio de Entrega
+        </h4>
+
+        <div class="footer-links">
+
+            <a href="https://forms.gle/zbUB57A4FteUDsKSA" target="_blank" rel="noopener noreferrer" class="footer-link form">
+                <span class="icon-box">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#28a745" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                        <polyline points="14 2 14 8 20 8"/>
+                        <line x1="16" y1="13" x2="8" y2="13"/>
+                        <line x1="16" y1="17" x2="8" y2="17"/>
+                    </svg>
+                </span>
+                <div class="texto">
+                    <strong>Envio de Relat&oacute;rio</strong>
+                    <small>Atividades dos m&oacute;dulos + Comprovante do Simulado</small>
+                </div>
+                <span class="seta">&rarr;</span>
+            </a>
+
+        </div>
+
+        <div class="obs">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/>
+                <path d="M9 18h6"/>
+                <path d="M10 22h4"/>
+            </svg>
+            Clique nos links para abrir em uma nova aba
+        </div>
+
+    </footer>
+
+</div>
+
+</body>
+</html>

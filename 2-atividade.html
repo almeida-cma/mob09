@@ -1,0 +1,1068 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎓 Adicionando o Campo 'Idade' ao CRUD (Guia Didático)</title>
+    <style>
+        /* ============================================================
+           ESTILOS DO AMBIENTE DIDÁTICO (SIDEBAR, TEMA ESCURO, PREVIEW)
+           ============================================================ */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            min-height: 100vh;
+            display: flex;
+        }
+
+        /* BOTÃO VOLTAR AO TOPO */
+        .btn-topo {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #0284c7, #38bdf8);
+            color: #0f172a;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            box-shadow: 0 8px 20px rgba(56,189,248,0.3);
+            transition: all 0.25s;
+            z-index: 1500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        .btn-topo:hover { transform: scale(1.1) translateY(-3px); }
+        .btn-topo.oculto { opacity: 0; pointer-events: none; transform: scale(0.5); }
+
+        /* BOTÃO MOBILE */
+        .btn-menu-flutuante {
+            position: fixed;
+            bottom: 24px;
+            left: 24px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #0284c7, #38bdf8);
+            color: #0f172a;
+            border: none;
+            font-size: 1.4rem;
+            cursor: pointer;
+            box-shadow: 0 8px 20px rgba(56,189,248,0.3);
+            transition: all 0.25s;
+            z-index: 1400;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-menu-flutuante .badge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background: #f59e0b;
+            color: #000;
+            font-size: 0.65rem;
+            font-weight: 800;
+            padding: 2px 6px;
+            border-radius: 10px;
+            border: 2px solid #0f172a;
+        }
+
+        .overlay-menu {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.65);
+            backdrop-filter: blur(4px);
+            z-index: 99;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+        .overlay-menu.ativo { opacity: 1; pointer-events: auto; }
+
+        /* SIDEBAR */
+        .sidebar {
+            width: 320px;
+            background: #1e293b;
+            padding: 22px 16px;
+            height: 100vh;
+            overflow-y: auto;
+            position: fixed;
+            left: 0;
+            top: 0;
+            border-right: 1px solid #334155;
+            z-index: 100;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-logo {
+            font-size: 1.15rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #38bdf8, #818cf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 4px;
+        }
+
+        .sidebar-sub {
+            font-size: 0.75rem;
+            color: #94a3b8;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 700;
+        }
+
+        .categoria-titulo {
+            font-size: 0.68rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: #64748b;
+            letter-spacing: 1.5px;
+            margin: 18px 0 8px;
+            padding-left: 8px;
+            border-left: 3px solid #38bdf8;
+        }
+
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 11px 12px;
+            margin: 4px 0;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.84rem;
+            color: #cbd5e1;
+            transition: all 0.15s;
+            border: none;
+            background: transparent;
+            width: 100%;
+            text-align: left;
+            font-family: inherit;
+        }
+
+        .sidebar-item:hover { background: #334155; color: #fff; }
+        .sidebar-item.ativo {
+            background: linear-gradient(135deg, #38bdf8, #818cf8);
+            color: #0f172a;
+            font-weight: 800;
+        }
+
+        /* ÁREA PRINCIPAL */
+        .main {
+            margin-left: 320px;
+            flex: 1;
+            padding: 30px 40px 100px;
+            min-height: 100vh;
+        }
+
+        .main-header h1 {
+            font-size: 1.8rem;
+            background: linear-gradient(135deg, #38bdf8, #818cf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+        }
+
+        .meta-degrau {
+            display: inline-block;
+            background: #0369a1;
+            color: #bae6fd;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 800;
+            margin-top: 4px;
+            border: 1px solid #38bdf8;
+        }
+
+        /* CARDS PEDAGÓGICOS */
+        .card-missao {
+            background: #1e293b;
+            border-left: 4px solid #38bdf8;
+            border-radius: 10px;
+            padding: 16px 20px;
+            margin: 16px 0;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        .card-missao strong { color: #7dd3fc; }
+        .card-missao code {
+            background: #0f172a;
+            color: #facc15;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.85rem;
+        }
+
+        .destaque-mudanca {
+            background: rgba(56, 189, 248, 0.1);
+            border: 1px dashed #38bdf8;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-family: monospace;
+            font-size: 0.85rem;
+            line-height: 1.8;
+            color: #f1f5f9;
+        }
+        .destaque-mudanca span.novo {
+            color: #4ade80;
+            font-weight: bold;
+            background: rgba(74, 222, 128, 0.15);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .btn-nova-aba {
+            display: inline-block;
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #0284c7, #2563eb);
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            margin-bottom: 20px;
+            border: none;
+            cursor: pointer;
+            font-family: inherit;
+            transition: 0.15s;
+        }
+        .btn-nova-aba:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(56,189,248,0.35);
+        }
+
+        /* PREVIEW IFRAME */
+        .preview-wrapper {
+            background: #020617;
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            margin-bottom: 24px;
+            border: 1px solid #334155;
+        }
+
+        .preview-header {
+            background: #1e293b;
+            padding: 10px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #334155;
+        }
+
+        .preview-header .ponto {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 4px;
+        }
+        .ponto.vermelho { background: #ef4444; }
+        .ponto.amarelo { background: #f59e0b; }
+        .ponto.verde { background: #10b981; }
+
+        .preview-titulo {
+            color: #94a3b8;
+            font-size: 0.75rem;
+            font-family: monospace;
+        }
+
+        .preview-iframe {
+            width: 100%;
+            height: 380px;
+            border: none;
+            background: #fff;
+            display: block;
+        }
+
+        /* ABAS */
+        .abas {
+            display: flex;
+            gap: 4px;
+            border-bottom: 2px solid #334155;
+            flex-wrap: wrap;
+        }
+
+        .aba {
+            padding: 10px 18px;
+            background: transparent;
+            border: none;
+            color: #64748b;
+            font-size: 0.82rem;
+            font-weight: 700;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.15s;
+            font-family: inherit;
+        }
+
+        .aba:hover { color: #cbd5e1; background: #1e293b; }
+        .aba.ativa { color: #38bdf8; border-bottom-color: #38bdf8; }
+
+        .bloco-codigo {
+            display: none;
+            position: relative;
+            background: #020617;
+            border-radius: 0 0 12px 12px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            border: 1px solid #334155;
+            border-top: none;
+        }
+        .bloco-codigo.ativo { display: block; }
+
+        .bloco-codigo .btn-copiar {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: #38bdf8;
+            color: #0f172a;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.72rem;
+            font-weight: 800;
+            font-family: inherit;
+            z-index: 2;
+        }
+        .bloco-codigo .btn-copiar:hover { background: #7dd3fc; }
+
+        .bloco-codigo pre {
+            padding: 20px;
+            color: #93c5fd;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 0.82rem;
+            line-height: 1.7;
+            overflow-x: auto;
+            white-space: pre;
+            max-height: 480px;
+        }
+
+        @media (max-width: 900px) {
+            .sidebar { transform: translateX(-100%); }
+            .sidebar.aberta { transform: translateX(0); }
+            .main { margin-left: 0; padding: 20px 16px 110px; }
+            .btn-menu-flutuante { display: flex; }
+        }
+    </style>
+</head>
+<body>
+
+<button class="btn-topo oculto" id="btnTopo" onclick="voltarAoInicioPrincipal()" title="Voltar ao início">⬆️</button>
+
+<button class="btn-menu-flutuante" id="btnMenuFlutuante" onclick="toggleMenu()" aria-label="Abrir menu">
+    ☰
+    <span class="badge" id="badgeTotal">4</span>
+</button>
+
+<div class="overlay-menu" id="overlayMenu" onclick="fecharMenu()"></div>
+
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">🎓 ENGENHARIA DE DADOS</div>
+    <div class="sidebar-sub">Adicionando Campo no CRUD</div>
+    <div id="sidebarNav"></div>
+</aside>
+
+<main class="main" id="inicioPrincipal">
+    <div id="conteudoPrincipal"></div>
+</main>
+
+<script>
+    /* ============================================================
+       CSS MÍNIMO EXATO FORNECIDO PELO USUÁRIO (NUNCA OMITIDO)
+       ============================================================ */
+    const CSS_MINIMO_EXATO = `table,
+th,
+td {
+    border: 1px solid #334155;
+    border-collapse: collapse;
+}`;
+
+    /* ============================================================
+       OS 4 DEGRAUS PEDAGÓGICOS DA INCLUSÃO DO CAMPO "IDADE"
+       Equação exata preservada: HTML + CSS + JS = htmlCompleto
+       ============================================================ */
+    const COMPONENTES = [
+        // ==================== DEGRAU 1 ====================
+        {
+            id: 'degrau-1',
+            nome: 'Degrau 1: O Estado Atual (Original)',
+            icone: '⚪',
+            categoria: 'Fase 1: Diagnóstico',
+            nivel: '⚪ Passo 1: O Ponto de Partida',
+            missao: 'Este é exatamente o seu código original. O formulário possui apenas <code>Nome</code> e <code>E-mail</code>, e a tabela possui 4 colunas: <code>ID</code>, <code>Nome</code>, <code>E-mail</code> e <code>Ações</code>.',
+            modificacao: `Estado inicial sem modificações:
+• HTML com inputs "nome" e "email".
+• CSS mínimo exato aplicado na tabela.
+• JS gerenciando o objeto { id, nome, email }.`,
+            css: CSS_MINIMO_EXATO,
+            html: `<div class="card-tela">
+    <h3>Degrau 7: O Sistema Completo (Com I/O e Reset)</h3>
+
+    <div class="linha-inputs">
+        <input id="nome" placeholder="Nome">
+        <input id="email" placeholder="E-mail">
+        <button class="btn-acao btn-azul" id="btnSalvar" onclick="salvar()">Salvar</button>
+    </div>
+
+    <div class="linha-inputs barra-ferramentas">
+        <button class="btn-acao btn-verde" onclick="exportar()">💾 Exportar</button>
+        <label class="btn-acao btn-roxo">
+            📂 Importar JSON
+            <input type="file" accept=".json" onchange="importar(event)" style="display:none;">
+        </label>
+        <button class="btn-acao btn-vermelho" onclick="resetar()">🔄 Resetar Tudo</button>
+    </div>
+
+    <table class="tabela-dados">
+        <thead><tr><th>ID</th><th>Nome</th><th>E-mail</th><th>Ações</th></tr></thead>
+        <tbody id="lista"></tbody>
+    </table>
+</div>`,
+            js: `let alunos = [];
+let idEditando = null;
+let proximoId = 1;
+const CHAVE = "alunos_degrau7_master";
+
+function carregar() {
+    const salvo = localStorage.getItem(CHAVE);
+    if (salvo) {
+        alunos = JSON.parse(salvo);
+        proximoId = alunos.length ? Math.max(...alunos.map(a => a.id)) + 1 : 1;
+    }
+    listar();
+}
+
+function persistir() {
+    localStorage.setItem(CHAVE, JSON.stringify(alunos));
+}
+
+function listar() {
+    const tbody = document.getElementById("lista");
+    tbody.innerHTML = "";
+    alunos.forEach(a => {
+        tbody.innerHTML += \`<tr>
+            <td>\${a.id}</td><td>\${a.nome}</td><td>\${a.email}</td>
+            <td>
+                <button class="btn-acao btn-amarelo" onclick="editar(\${a.id})">Editar</button>
+                <button class="btn-acao btn-vermelho" onclick="excluir(\${a.id})">Excluir</button>
+            </td>
+        </tr>\`;
+    });
+}
+
+function salvar() {
+    const n = document.getElementById("nome");
+    const e = document.getElementById("email");
+    if (!n.value) return alert("Preencha o nome!");
+
+    if (idEditando) {
+        const a = alunos.find(x => x.id === idEditando);
+        a.nome = n.value;
+        a.email = e.value;
+        idEditando = null;
+        document.getElementById("btnSalvar").innerText = "Salvar";
+    } else {
+        alunos.push({ id: proximoId++, nome: n.value, email: e.value });
+    }
+
+    n.value = e.value = "";
+    persistir();
+    listar();
+}
+
+function editar(id) {
+    const a = alunos.find(x => x.id === id);
+    document.getElementById("nome").value = a.nome;
+    document.getElementById("email").value = a.email;
+    idEditando = id;
+    document.getElementById("btnSalvar").innerText = "Atualizar #" + id;
+}
+
+function excluir(id) {
+    if (confirm("Excluir este aluno?")) {
+        alunos = alunos.filter(a => a.id !== id);
+        persistir();
+        listar();
+    }
+}
+
+function exportar() {
+    const texto = JSON.stringify(alunos, null, 2);
+    const blob = new Blob([texto], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "alunos.json";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(a.href);
+}
+
+function importar(evento) {
+    const arquivo = evento.target.files[0];
+    if (!arquivo) return;
+
+    const leitor = new FileReader();
+    leitor.onload = () => {
+        try {
+            const dados = JSON.parse(leitor.result);
+            if (!Array.isArray(dados)) throw new Error("O JSON precisa conter uma lista []");
+
+            alunos = dados;
+            proximoId = alunos.length ? Math.max(...alunos.map(a => a.id)) + 1 : 1;
+
+            persistir();
+            listar();
+            alert("Sucesso! " + alunos.length + " alunos importados.");
+        } catch (e) {
+            alert("Falha ao importar: " + e.message);
+        }
+    };
+    leitor.readAsText(arquivo);
+}
+
+function resetar() {
+    if (!confirm("Tem certeza que deseja apagar todo o banco de dados local?")) return;
+    localStorage.removeItem(CHAVE);
+    alunos = [];
+    proximoId = 1;
+    listar();
+}
+
+carregar();`
+        },
+
+        // ==================== DEGRAU 2 ====================
+        {
+            id: 'degrau-2',
+            nome: 'Degrau 2: A Camada HTML (Input e Cabeçalho)',
+            icone: '🟢',
+            categoria: 'Fase 2: Interface (HTML)',
+            nivel: '🟢 Passo 2: Estrutura Visual',
+            missao: 'Toda evolução de sistema começa pela interface do usuário. Criamos o input para receber o valor e uma nova coluna no cabeçalho da tabela.',
+            modificacao: `Alterações cirúrgicas no HTML:
+1. Adicionar o input: <span class="novo">&lt;input id="idade" type="number" placeholder="Idade"&gt;</span>
+2. Adicionar o cabeçalho: <span class="novo">&lt;th&gt;Idade&lt;/th&gt;</span> antes de &lt;th&gt;Ações&lt;/th&gt;
+3. O CSS mínimo permanece idêntico e passa a estilizar a nova coluna automaticamente!`,
+            css: CSS_MINIMO_EXATO,
+            html: `<div class="card-tela">
+    <h3>Degrau 7: O Sistema Completo (Com I/O e Reset)</h3>
+
+    <div class="linha-inputs">
+        <input id="nome" placeholder="Nome">
+        <input id="email" placeholder="E-mail">
+        <!-- 1. NOVO INPUT DE IDADE -->
+        <input id="idade" type="number" placeholder="Idade">
+        <button class="btn-acao btn-azul" id="btnSalvar" onclick="salvar()">Salvar</button>
+    </div>
+
+    <div class="linha-inputs barra-ferramentas">
+        <button class="btn-acao btn-verde" onclick="exportar()">💾 Exportar</button>
+        <label class="btn-acao btn-roxo">
+            📂 Importar JSON
+            <input type="file" accept=".json" onchange="importar(event)" style="display:none;">
+        </label>
+        <button class="btn-acao btn-vermelho" onclick="resetar()">🔄 Resetar Tudo</button>
+    </div>
+
+    <table class="tabela-dados">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nome</th>
+                <th>E-mail</th>
+                <!-- 2. NOVA COLUNA NO CABEÇALHO -->
+                <th>Idade</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody id="lista"></tbody>
+    </table>
+</div>`,
+            js: `// O JS ainda é o original neste degrau!
+// Veja no preview que a tabela agora tem a coluna "Idade", aguardando o JS preenchê-la.
+let alunos = [
+    { id: 1, nome: "Aluno Exemplo", email: "exemplo@email.com" }
+];
+let idEditando = null;
+let proximoId = 2;
+
+function listar() {
+    const tbody = document.getElementById("lista");
+    tbody.innerHTML = "";
+    alunos.forEach(a => {
+        tbody.innerHTML += \`<tr>
+            <td>\${a.id}</td><td>\${a.nome}</td><td>\${a.email}</td>
+            <td style="color:gray;">(vazio no JS)</td>
+            <td><button disabled>Ações</button></td>
+        </tr>\`;
+    });
+}
+listar();`
+        },
+
+        // ==================== DEGRAU 3 ====================
+        {
+            id: 'degrau-3',
+            nome: 'Degrau 3: Inserindo e Exibindo (Create & Read)',
+            icone: '🟡',
+            categoria: 'Fase 3: Lógica JS',
+            nivel: '🟡 Passo 3: Inserção e Leitura',
+            missao: 'No JS, lemos o campo <code>idade</code> na função <code>salvar()</code>, guardamos no objeto dentro do array <code>alunos</code>, limpamos o campo e adicionamos a célula <code>&lt;td&gt;\${a.idade ?? "-"}&lt;/td&gt;</code> na função <code>listar()</code>.',
+            modificacao: `Alterações cirúrgicas no JS:
+1. Em salvar():
+   const i = document.getElementById("idade");
+   alunos.push({ id: proximoId++, nome: n.value, email: e.value, <span class="novo">idade: i.value</span> });
+   n.value = e.value = <span class="novo">i.value = ""</span>;
+
+2. Em listar():
+   Adicionar a coluna: <span class="novo">&lt;td&gt;\${a.idade ?? "-"}&lt;/td&gt;</span>`,
+            css: CSS_MINIMO_EXATO,
+            html: `<div class="card-tela">
+    <h3>Degrau 7: O Sistema Completo (Com I/O e Reset)</h3>
+
+    <div class="linha-inputs">
+        <input id="nome" placeholder="Nome">
+        <input id="email" placeholder="E-mail">
+        <input id="idade" type="number" placeholder="Idade">
+        <button class="btn-acao btn-azul" id="btnSalvar" onclick="salvar()">Salvar</button>
+    </div>
+
+    <div class="linha-inputs barra-ferramentas">
+        <button class="btn-acao btn-verde" onclick="exportar()">💾 Exportar</button>
+        <label class="btn-acao btn-roxo">
+            📂 Importar JSON
+            <input type="file" accept=".json" onchange="importar(event)" style="display:none;">
+        </label>
+        <button class="btn-acao btn-vermelho" onclick="resetar()">🔄 Resetar Tudo</button>
+    </div>
+
+    <table class="tabela-dados">
+        <thead>
+            <tr>
+                <th>ID</th><th>Nome</th><th>E-mail</th><th>Idade</th><th>Ações</th>
+            </tr>
+        </thead>
+        <tbody id="lista"></tbody>
+    </table>
+</div>`,
+            js: `let alunos = [];
+let idEditando = null;
+let proximoId = 1;
+const CHAVE = "alunos_degrau3_passo";
+
+function persistir() {
+    localStorage.setItem(CHAVE, JSON.stringify(alunos));
+}
+
+function listar() {
+    const tbody = document.getElementById("lista");
+    tbody.innerHTML = "";
+    alunos.forEach(a => {
+        // Exibimos a idade salva ou "-" se estiver em branco
+        tbody.innerHTML += \`<tr>
+            <td>\${a.id}</td>
+            <td>\${a.nome}</td>
+            <td>\${a.email}</td>
+            <td>\${a.idade ?? "-"}</td>
+            <td><button disabled>Aguardando Passo 4</button></td>
+        </tr>\`;
+    });
+}
+
+function salvar() {
+    const n = document.getElementById("nome");
+    const e = document.getElementById("email");
+    const i = document.getElementById("idade"); // 1. Captura o input
+
+    if (!n.value) return alert("Preencha o nome!");
+
+    // 2. Guarda a idade junto ao objeto
+    alunos.push({
+        id: proximoId++,
+        nome: n.value,
+        email: e.value,
+        idade: i.value
+    });
+
+    // 3. Limpa todos os 3 campos
+    n.value = e.value = i.value = "";
+    persistir();
+    listar();
+}
+
+listar();`
+        },
+
+        // ==================== DEGRAU 4 ====================
+        {
+            id: 'degrau-4',
+            nome: 'Degrau 4: Ciclo Completo (Update, I/O e Reset)',
+            icone: '🔵',
+            categoria: 'Fase 4: Conclusão',
+            nivel: '🔵 Passo 4: O Sistema 100% Concluído',
+            missao: 'Finalizamos o ciclo completo: ensinamos a função <code>editar()</code> a carregar a idade nos campos (<code>document.getElementById("idade").value = a.idade || ""</code>) e atualizá-la quando <code>idEditando</code> for verdadeiro (<code>a.idade = i.value</code>). O LocalStorage, a Exportação e a Importação funcionam perfeitamente sem precisar mudar nenhuma linha, pois já serializam o objeto JSON inteiro!',
+            modificacao: `Alterações cirúrgicas finais:
+1. Em editar(id):
+   <span class="novo">document.getElementById("idade").value = a.idade || "";</span>
+2. Em salvar() no ramo de edição (if idEditando):
+   <span class="novo">a.idade = i.value;</span>
+3. O LocalStorage, Exportar e Importar já acolhem o novo campo automaticamente!`,
+            css: CSS_MINIMO_EXATO,
+            html: `<div class="card-tela">
+    <h3>Degrau 7: O Sistema Completo (Com I/O e Reset)</h3>
+
+    <div class="linha-inputs">
+        <input id="nome" placeholder="Nome">
+        <input id="email" placeholder="E-mail">
+        <input id="idade" type="number" placeholder="Idade">
+        <button class="btn-acao btn-azul" id="btnSalvar" onclick="salvar()">Salvar</button>
+    </div>
+
+    <div class="linha-inputs barra-ferramentas">
+        <button class="btn-acao btn-verde" onclick="exportar()">💾 Exportar</button>
+        <label class="btn-acao btn-roxo">
+            📂 Importar JSON
+            <input type="file" accept=".json" onchange="importar(event)" style="display:none;">
+        </label>
+        <button class="btn-acao btn-vermelho" onclick="resetar()">🔄 Resetar Tudo</button>
+    </div>
+
+    <table class="tabela-dados">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nome</th>
+                <th>E-mail</th>
+                <th>Idade</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody id="lista"></tbody>
+    </table>
+</div>`,
+            js: `let alunos = [];
+let idEditando = null;
+let proximoId = 1;
+const CHAVE = "alunos_degrau7_master_com_idade";
+
+function carregar() {
+    const salvo = localStorage.getItem(CHAVE);
+    if (salvo) {
+        alunos = JSON.parse(salvo);
+        proximoId = alunos.length ? Math.max(...alunos.map(a => a.id)) + 1 : 1;
+    }
+    listar();
+}
+
+function persistir() {
+    localStorage.setItem(CHAVE, JSON.stringify(alunos));
+}
+
+function listar() {
+    const tbody = document.getElementById("lista");
+    tbody.innerHTML = "";
+    alunos.forEach(a => {
+        tbody.innerHTML += \`<tr>
+            <td>\${a.id}</td>
+            <td>\${a.nome}</td>
+            <td>\${a.email}</td>
+            <td>\${a.idade ?? "-"}</td>
+            <td>
+                <button class="btn-acao btn-amarelo" onclick="editar(\${a.id})">Editar</button>
+                <button class="btn-acao btn-vermelho" onclick="excluir(\${a.id})">Excluir</button>
+            </td>
+        </tr>\`;
+    });
+}
+
+function salvar() {
+    const n = document.getElementById("nome");
+    const e = document.getElementById("email");
+    const i = document.getElementById("idade");
+
+    if (!n.value) return alert("Preencha o nome!");
+
+    if (idEditando) {
+        const a = alunos.find(x => x.id === idEditando);
+        a.nome  = n.value;
+        a.email = e.value;
+        a.idade = i.value; // ATUALIZAÇÃO DA IDADE
+        idEditando = null;
+        document.getElementById("btnSalvar").innerText = "Salvar";
+    } else {
+        alunos.push({ 
+            id: proximoId++, 
+            nome: n.value, 
+            email: e.value, 
+            idade: i.value // INCLUSÃO DA IDADE
+        });
+    }
+
+    n.value = e.value = i.value = "";
+    persistir();
+    listar();
+}
+
+function editar(id) {
+    const a = alunos.find(x => x.id === id);
+    document.getElementById("nome").value  = a.nome;
+    document.getElementById("email").value = a.email;
+    document.getElementById("idade").value = a.idade || ""; // PREENCHE O INPUT DE IDADE
+    idEditando = id;
+    document.getElementById("btnSalvar").innerText = "Atualizar #" + id;
+}
+
+function excluir(id) {
+    if (confirm("Excluir este aluno?")) {
+        alunos = alunos.filter(a => a.id !== id);
+        persistir();
+        listar();
+    }
+}
+
+function exportar() {
+    const texto = JSON.stringify(alunos, null, 2);
+    const blob = new Blob([texto], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "alunos.json";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(a.href);
+}
+
+function importar(evento) {
+    const arquivo = evento.target.files[0];
+    if (!arquivo) return;
+
+    const leitor = new FileReader();
+    leitor.onload = () => {
+        try {
+            const dados = JSON.parse(leitor.result);
+            if (!Array.isArray(dados)) throw new Error("O JSON precisa conter uma lista []");
+
+            alunos = dados;
+            proximoId = alunos.length ? Math.max(...alunos.map(a => a.id)) + 1 : 1;
+
+            persistir();
+            listar();
+            alert("Sucesso! " + alunos.length + " alunos importados.");
+        } catch (e) {
+            alert("Falha ao importar: " + e.message);
+        }
+    };
+    leitor.readAsText(arquivo);
+}
+
+function resetar() {
+    if (!confirm("Tem certeza que deseja apagar todo o banco de dados local?")) return;
+    localStorage.removeItem(CHAVE);
+    alunos = [];
+    proximoId = 1;
+    listar();
+}
+
+carregar();`
+        }
+    ];
+
+    /* ============================================================
+       RENDERIZADOR DO TUTORIAL E SIDEBAR
+       ============================================================ */
+    const categorias = [...new Set(COMPONENTES.map(c => c.categoria))];
+    const sidebarNav = document.getElementById('sidebarNav');
+
+    categorias.forEach(cat => {
+        const titulo = document.createElement('div');
+        titulo.className = 'categoria-titulo';
+        titulo.textContent = cat;
+        sidebarNav.appendChild(titulo);
+
+        COMPONENTES.filter(c => c.categoria === cat).forEach(comp => {
+            const btn = document.createElement('button');
+            btn.className = 'sidebar-item';
+            btn.dataset.id = comp.id;
+            btn.innerHTML = `<span>${comp.icone}</span> ${comp.nome}`;
+            btn.onclick = () => mostrarDegrau(comp.id);
+            sidebarNav.appendChild(btn);
+        });
+    });
+
+    const conteudoPrincipal = document.getElementById('conteudoPrincipal');
+    let htmlCompletoAtual = '';
+
+    function mostrarDegrau(id) {
+        const comp = COMPONENTES.find(c => c.id === id);
+        if (!comp) return;
+
+        document.querySelectorAll('.sidebar-item').forEach(b => b.classList.remove('ativo'));
+        const btnAtivo = document.querySelector(`.sidebar-item[data-id="${id}"]`);
+        if (btnAtivo) btnAtivo.classList.add('ativo');
+
+        fecharMenu();
+
+        // EQUAÇÃO MATEMÁTICA EXATA: HTML + CSS + JS = htmlCompleto
+        const htmlCompleto = `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>${comp.nome}</title>
+<style>
+${comp.css}
+</style>
+</head>
+<body>
+${comp.html}
+<script>
+${comp.js}
+<\/script>
+</body>
+</html>`;
+
+        htmlCompletoAtual = htmlCompleto;
+
+        conteudoPrincipal.innerHTML = `
+            <div class="main-header">
+                <h1>${comp.icone} ${comp.nome}</h1>
+                <span class="meta-degrau">${comp.nivel}</span>
+            </div>
+
+            <div class="card-missao">
+                🎯 <strong>O que você aprende neste degrau:</strong><br>
+                ${comp.missao}
+                
+                <div class="destaque-mudanca">
+                    ${comp.modificacao.replace(/\n/g, '<br>')}
+                </div>
+            </div>
+
+            <button class="btn-nova-aba" onclick="abrirEmNovaAba()">
+                🚀 Abrir este degrau em Nova Aba
+            </button>
+
+            <!-- PREVIEW EM TEMPO REAL -->
+            <div class="preview-wrapper">
+                <div class="preview-header">
+                    <div>
+                        <span class="ponto vermelho"></span>
+                        <span class="ponto amarelo"></span>
+                        <span class="ponto verde"></span>
+                    </div>
+                    <span class="preview-titulo">preview-${comp.id}.html</span>
+                    <span></span>
+                </div>
+                <iframe class="preview-iframe" id="previewIframe"></iframe>
+            </div>
+
+            <!-- ABAS DE CÓDIGO (COERÊNCIA MATEMÁTICA 100%) -->
+            <div class="abas">
+                <button class="aba ativa" onclick="trocarAba(this, 'html')">📄 HTML</button>
+                <button class="aba" onclick="trocarAba(this, 'css')">🎨 CSS</button>
+                <button class="aba" onclick="trocarAba(this, 'js')">⚙️ JavaScript</button>
+                <button class="aba" onclick="trocarAba(this, 'tudo')">📦 Código Completo</button>
+            </div>
+
+            <div class="bloco-codigo ativo" id="aba-html">
+                <button class="btn-copiar" onclick="copiarAba('aba-html', this)">📋 Copiar HTML</button>
+                <pre>${escapeHtml(comp.html)}</pre>
+            </div>
+            <div class="bloco-codigo" id="aba-css">
+                <button class="btn-copiar" onclick="copiarAba('aba-css', this)">📋 Copiar CSS</button>
+                <pre>${escapeHtml(comp.css)}</pre>
+            </div>
+            <div class="bloco-codigo" id="aba-js">
+                <button class="btn-copiar" onclick="copiarAba('aba-js', this)">📋 Copiar JS</button>
+                <pre>${escapeHtml(comp.js)}</pre>
+            </div>
+            <div class="bloco-codigo" id="aba-tudo">
+                <button class="btn-copiar" onclick="copiarAba('aba-tudo', this)">📋 Copiar Tudo</button>
+                <pre>${escapeHtml(htmlCompleto)}</pre>
+            </div>
+        `;
+
+        const iframe = document.getElementById('previewIframe');
+        iframe.srcdoc = htmlCompleto;
+
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function abrirEmNovaAba() {
+        const blob = new Blob([htmlCompletoAtual], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        window.open(url, '_blank');
+    }
+
+    function trocarAba(btn, tipo) {
+        document.querySelectorAll('.aba').forEach(b => b.classList.remove('ativa'));
+        document.querySelectorAll('.bloco-codigo').forEach(b => b.classList.remove('ativo'));
+        btn.classList.add('ativa');
+        document.getElementById('aba-' + tipo).classList.add('ativo');
+    }
+
+    function copiarAba(idAba, btn) {
+        const texto = document.getElementById(idAba).querySelector('pre').innerText;
+        navigator.clipboard.writeText(texto).then(() => {
+            const orig = btn.textContent;
+            btn.textContent = '✅ Copiado!';
+            setTimeout(() => btn.textContent = orig, 1800);
+        });
+    }
+
+    function escapeHtml(txt) {
+        return txt
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+    }
+
+    function toggleMenu() {
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlayMenu');
+        const aberto = sidebar.classList.contains('aberta');
+        if (aberto) {
+            sidebar.classList.remove('aberta');
+            overlay.classList.remove('ativo');
+        } else {
+            sidebar.classList.add('aberta');
+            overlay.classList.add('ativo');
+        }
+    }
+
+    function fecharMenu() {
+        document.getElementById('sidebar').classList.remove('aberta');
+        document.getElementById('overlayMenu').classList.remove('ativo');
+    }
+
+    function voltarAoInicioPrincipal() {
+        document.getElementById('inicioPrincipal').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    window.addEventListener('scroll', () => {
+        const btn = document.getElementById('btnTopo');
+        if (window.scrollY > 350) btn.classList.remove('oculto');
+        else btn.classList.add('oculto');
+    });
+
+    // Inicia no Degrau 1
+    mostrarDegrau(COMPONENTES[0].id);
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1414 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💾 Dominando o LocalStorage: Guia Didático em 7 Degraus</title>
+    <style>
+        /* ============================================================
+           ESTILOS BASE (TEMA DARK CYBER-ACADÊMICO)
+           ============================================================ */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            min-height: 100vh;
+            display: flex;
+        }
+
+        /* BOTÃO VOLTAR AO TOPO */
+        .btn-topo {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3b82f6, #06b6d4);
+            color: #0f172a;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            box-shadow: 0 8px 20px rgba(59,130,246,0.4);
+            transition: all 0.25s;
+            z-index: 1500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        .btn-topo:hover { transform: scale(1.1) translateY(-3px); }
+        .btn-topo.oculto { opacity: 0; pointer-events: none; transform: scale(0.5); }
+
+        /* BOTÃO MOBILE */
+        .btn-menu-flutuante {
+            position: fixed;
+            bottom: 24px;
+            left: 24px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3b82f6, #06b6d4);
+            color: #0f172a;
+            border: none;
+            font-size: 1.4rem;
+            cursor: pointer;
+            box-shadow: 0 8px 20px rgba(59,130,246,0.4);
+            transition: all 0.25s;
+            z-index: 1400;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-menu-flutuante:active { transform: scale(0.92); }
+        .btn-menu-flutuante .badge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background: #f59e0b;
+            color: #000;
+            font-size: 0.65rem;
+            font-weight: 800;
+            padding: 2px 6px;
+            border-radius: 10px;
+            border: 2px solid #0f172a;
+        }
+
+        .overlay-menu {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.65);
+            backdrop-filter: blur(4px);
+            z-index: 99;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+        .overlay-menu.ativo { opacity: 1; pointer-events: auto; }
+
+        /* SIDEBAR DE DEGRAUS */
+        .sidebar {
+            width: 330px;
+            background: #1e293b;
+            padding: 22px 16px;
+            height: 100vh;
+            overflow-y: auto;
+            position: fixed;
+            left: 0;
+            top: 0;
+            border-right: 1px solid #334155;
+            z-index: 100;
+            transition: transform 0.3s ease;
+            box-shadow: 4px 0 24px rgba(0,0,0,0.3);
+        }
+
+        .sidebar-logo {
+            font-size: 1.25rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #38bdf8, #818cf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 4px;
+        }
+
+        .sidebar-sub {
+            font-size: 0.75rem;
+            color: #94a3b8;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 700;
+        }
+
+        .categoria-titulo {
+            font-size: 0.68rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: #64748b;
+            letter-spacing: 1.5px;
+            margin: 18px 0 8px;
+            padding-left: 8px;
+            border-left: 3px solid #38bdf8;
+        }
+
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 11px 12px;
+            margin: 4px 0;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.86rem;
+            color: #cbd5e1;
+            transition: all 0.15s;
+            border: none;
+            background: transparent;
+            width: 100%;
+            text-align: left;
+            font-family: inherit;
+        }
+
+        .sidebar-item:hover {
+            background: #334155;
+            color: #fff;
+        }
+
+        .sidebar-item.ativo {
+            background: linear-gradient(135deg, #38bdf8, #818cf8);
+            color: #0f172a;
+            font-weight: 800;
+        }
+
+        .sidebar-item .icone { font-size: 1.1rem; }
+
+        /* ÁREA PRINCIPAL */
+        .main {
+            margin-left: 330px;
+            flex: 1;
+            padding: 30px 40px 100px;
+            min-height: 100vh;
+        }
+
+        .main-header h1 {
+            font-size: 1.9rem;
+            background: linear-gradient(135deg, #38bdf8, #818cf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+        }
+
+        .meta-degrau {
+            display: inline-block;
+            background: #0369a1;
+            color: #bae6fd;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 800;
+            margin-top: 6px;
+            border: 1px solid #38bdf8;
+        }
+
+        /* CARTÕES METODOLÓGICOS */
+        .card-missao {
+            background: #1e293b;
+            border-left: 4px solid #38bdf8;
+            border-radius: 10px;
+            padding: 16px 20px;
+            margin: 18px 0;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        .card-missao strong { color: #7dd3fc; }
+        .card-missao code {
+            background: #0f172a;
+            color: #facc15;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.85rem;
+        }
+
+        .btn-nova-aba {
+            display: inline-block;
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #0284c7, #2563eb);
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            margin-bottom: 20px;
+            border: none;
+            cursor: pointer;
+            font-family: inherit;
+            transition: 0.15s;
+        }
+        .btn-nova-aba:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(56,189,248,0.35);
+        }
+
+        /* PREVIEW COM IFRAME */
+        .preview-wrapper {
+            background: #020617;
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            margin-bottom: 24px;
+            border: 1px solid #334155;
+        }
+
+        .preview-header {
+            background: #1e293b;
+            padding: 10px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #334155;
+        }
+
+        .preview-header .ponto {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 4px;
+        }
+        .ponto.vermelho { background: #ef4444; }
+        .ponto.amarelo { background: #f59e0b; }
+        .ponto.verde { background: #10b981; }
+
+        .preview-titulo {
+            color: #94a3b8;
+            font-size: 0.75rem;
+            font-family: monospace;
+        }
+
+        .preview-iframe {
+            width: 100%;
+            height: 380px;
+            border: none;
+            background: #0f172a;
+            display: block;
+        }
+
+        /* ABAS DE CÓDIGO */
+        .abas {
+            display: flex;
+            gap: 4px;
+            border-bottom: 2px solid #334155;
+            flex-wrap: wrap;
+        }
+
+        .aba {
+            padding: 10px 18px;
+            background: transparent;
+            border: none;
+            color: #64748b;
+            font-size: 0.82rem;
+            font-weight: 700;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.15s;
+            font-family: inherit;
+        }
+
+        .aba:hover { color: #cbd5e1; background: #1e293b; }
+        .aba.ativa { color: #38bdf8; border-bottom-color: #38bdf8; }
+
+        .bloco-codigo {
+            display: none;
+            position: relative;
+            background: #020617;
+            border-radius: 0 0 12px 12px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            border: 1px solid #334155;
+            border-top: none;
+        }
+        .bloco-codigo.ativo { display: block; }
+
+        .bloco-codigo .btn-copiar {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: #38bdf8;
+            color: #042f2e;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.72rem;
+            font-weight: 800;
+            font-family: inherit;
+            z-index: 2;
+        }
+        .bloco-codigo .btn-copiar:hover { background: #7dd3fc; }
+
+        .bloco-codigo pre {
+            padding: 20px;
+            color: #93c5fd;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 0.82rem;
+            line-height: 1.7;
+            overflow-x: auto;
+            white-space: pre;
+            max-height: 480px;
+        }
+
+        @media (max-width: 900px) {
+            .sidebar { transform: translateX(-100%); }
+            .sidebar.aberta { transform: translateX(0); }
+            .main { margin-left: 0; padding: 20px 16px 110px; }
+            .btn-menu-flutuante { display: flex; }
+            .main-header h1 { font-size: 1.5rem; }
+            .preview-iframe { height: 350px; }
+        }
+    </style>
+</head>
+<body>
+
+<button class="btn-topo oculto" id="btnTopo" onclick="voltarAoInicioPrincipal()" title="Voltar ao início">⬆️</button>
+
+<button class="btn-menu-flutuante" id="btnMenuFlutuante" onclick="toggleMenu()" aria-label="Abrir menu">
+    ☰
+    <span class="badge" id="badgeTotal">7</span>
+</button>
+
+<div class="overlay-menu" id="overlayMenu" onclick="fecharMenu()"></div>
+
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">💾 LOCAL STORAGE</div>
+    <div class="sidebar-sub">Do Básico ao CRUD Completo</div>
+    <div id="sidebarNav"></div>
+</aside>
+
+<main class="main" id="inicioPrincipal">
+    <div id="conteudoPrincipal"></div>
+</main>
+
+<script>
+    /* ============================================================
+       OS 7 DEGRAUS PEDAGÓGICOS DO LOCALSTORAGE + CRUD
+       Cada degrau isola e adiciona exatamente 1 conceito novo.
+       ============================================================ */
+    const COMPONENTES = [
+        // ==================== DEGRAU 1 ====================
+        {
+            id: 'degrau-1',
+            nome: 'Degrau 1: Gravando Texto Puro',
+            icone: '🟢',
+            categoria: 'Fase 1: O Básico',
+            nivel: '🟢 Nível 1: Muito Fácil',
+            missao: 'O <code>localStorage</code> guarda pares de <em>Chave</em> e <em>Valor</em> no navegador. Aprenda a salvar uma String com <code>localStorage.setItem("chave", valor)</code> e resgatá-la com <code>localStorage.getItem("chave")</code>.',
+            desafio: 'Digite seu nome, clique em Salvar, feche a aba ou recarregue e clique em Ler para ver o valor mantido intacto.',
+            html: `<div class="card-tela">
+    <h3>Degrau 1: setItem e getItem</h3>
+    <p>O LocalStorage armazena dados persistentes no navegador (não somem ao dar F5):</p>
+    
+    <div class="linha-inputs">
+        <input id="meuDado" placeholder="Digite algo para salvar">
+        <button class="btn-acao btn-azul" onclick="gravarDado()">Gravar (setItem)</button>
+        <button class="btn-acao btn-verde" onclick="lerDado()">Ler (getItem)</button>
+    </div>
+
+    <div class="painel-status" id="saida">Nenhum dado lido ainda.</div>
+</div>`,
+            css: `.card-tela {
+    background: #1e293b;
+    border-radius: 12px;
+    padding: 24px;
+    text-align: center;
+    border: 1px solid #334155;
+}
+.card-tela h3 { color: #38bdf8; margin-bottom: 8px; }
+.card-tela p { color: #94a3b8; font-size: 0.85rem; margin-bottom: 16px; }
+
+.linha-inputs {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+}
+input {
+    padding: 10px 14px;
+    background: #0f172a;
+    border: 1px solid #475569;
+    border-radius: 8px;
+    color: #fff;
+    font-size: 0.9rem;
+    outline: none;
+}
+input:focus { border-color: #38bdf8; }
+
+.btn-acao {
+    padding: 10px 16px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.15s;
+    color: #fff;
+}
+.btn-azul { background: #0284c7; }
+.btn-azul:hover { background: #0369a1; }
+.btn-verde { background: #10b981; }
+.btn-verde:hover { background: #059669; }
+
+.painel-status {
+    background: #020617;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    padding: 14px;
+    color: #facc15;
+    font-family: monospace;
+    font-size: 0.95rem;
+}`,
+            js: `const CHAVE = "meu_primeiro_teste";
+
+function gravarDado() {
+    const valor = document.getElementById("meuDado").value;
+    if (!valor) return alert("Digite algo antes!");
+    
+    // 1. Grava no navegador:
+    localStorage.setItem(CHAVE, valor);
+    document.getElementById("saida").innerText = "Gravado com sucesso: " + valor;
+}
+
+function lerDado() {
+    // 2. Resgata do navegador:
+    const valorSalvo = localStorage.getItem(CHAVE);
+    
+    if (valorSalvo !== null) {
+        document.getElementById("saida").innerText = "Dado recuperado: " + valorSalvo;
+    } else {
+        document.getElementById("saida").innerText = "Nenhum dado encontrado para a chave '" + CHAVE + "'";
+    }
+}`
+        },
+
+        // ==================== DEGRAU 2 ====================
+        {
+            id: 'degrau-2',
+            nome: 'Degrau 2: A Ponte JSON (Objetos e Arrays)',
+            icone: '🟢',
+            categoria: 'Fase 1: O Básico',
+            nivel: '🟢 Nível 2: Fácil',
+            missao: 'O <code>localStorage</code> **SÓ aceita texto**. Para salvar listas (arrays) ou objetos, temos que convertê-los em texto com <code>JSON.stringify()</code> ao salvar, e reconstruí-los com <code>JSON.parse()</code> ao ler.',
+            desafio: 'Salve o aluno objeto e veja na tela a diferença entre o formato de texto cru (String) e o objeto manipulável.',
+            html: `<div class="card-tela">
+    <h3>Degrau 2: Serialização com JSON</h3>
+    <p>Transformando JavaScript em texto puro e vice-versa:</p>
+
+    <div class="linha-inputs">
+        <input id="txtNome" placeholder="Nome" value="Ada Lovelace">
+        <input id="txtEmail" placeholder="E-mail" value="ada@computacao.org">
+        <button class="btn-acao btn-azul" onclick="salvarObjeto()">JSON.stringify & Salvar</button>
+        <button class="btn-acao btn-verde" onclick="recuperarObjeto()">JSON.parse & Ler</button>
+    </div>
+
+    <div class="painel-status" id="saidaJSON">Aguardando ação...</div>
+</div>`,
+            css: `.card-tela {
+    background: #1e293b;
+    border-radius: 12px;
+    padding: 24px;
+    text-align: center;
+    border: 1px solid #334155;
+}
+.card-tela h3 { color: #38bdf8; margin-bottom: 8px; }
+.card-tela p { color: #94a3b8; font-size: 0.85rem; margin-bottom: 16px; }
+
+.linha-inputs {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+}
+input {
+    padding: 10px 14px;
+    background: #0f172a;
+    border: 1px solid #475569;
+    border-radius: 8px;
+    color: #fff;
+    font-size: 0.9rem;
+}
+
+.btn-acao {
+    padding: 10px 16px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 700;
+    cursor: pointer;
+    color: #fff;
+}
+.btn-azul { background: #0284c7; }
+.btn-verde { background: #10b981; }
+
+.painel-status {
+    background: #020617;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    padding: 14px;
+    color: #38bdf8;
+    font-family: monospace;
+    font-size: 0.88rem;
+    white-space: pre-wrap;
+    text-align: left;
+}`,
+            js: `const CHAVE = "objeto_aluno_teste";
+
+function salvarObjeto() {
+    // Criamos o objeto JavaScript:
+    const aluno = {
+        nome: document.getElementById("txtNome").value,
+        email: document.getElementById("txtEmail").value
+    };
+
+    // 1. Transformamos em texto com JSON.stringify():
+    const textoJson = JSON.stringify(aluno);
+
+    // 2. Gravamos o texto:
+    localStorage.setItem(CHAVE, textoJson);
+
+    document.getElementById("saidaJSON").innerText =
+        "Texto cru armazenado no LocalStorage:\\n" + textoJson;
+}
+
+function recuperarObjeto() {
+    // 1. Pegamos a string crua:
+    const textoSalvo = localStorage.getItem(CHAVE);
+    if (!textoSalvo) return alert("Nada salvo ainda!");
+
+    // 2. Reconstruímos o objeto em memória com JSON.parse():
+    const obj = JSON.parse(textoSalvo);
+
+    document.getElementById("saidaJSON").innerText =
+        "Objeto reconstruído pelo parse:\\n" +
+        "Nome: " + obj.nome + "\\n" +
+        "E-mail: " + obj.email;
+}`
+        },
+
+        // ==================== DEGRAU 3 ====================
+        {
+            id: 'degrau-3',
+            nome: 'Degrau 3: Listando com Tabela HTML',
+            icone: '🟡',
+            categoria: 'Fase 2: CRUD Básico',
+            nivel: '🟡 Nível 3: Médio',
+            missao: 'O padrão **READ** do CRUD. Iremos iterar sobre o array em memória com <code>forEach</code> e renderizar as linhas dinamicamente dentro de <code>&lt;tbody&gt;</code>.',
+            desafio: 'Cadastre dois alunos para ver a tabela atualizar o HTML automaticamente a cada inserção.',
+            html: `<div class="card-tela">
+    <h3>Degrau 3: Array de Objetos + Renderização</h3>
+    
+    <div class="linha-inputs">
+        <input id="nome" placeholder="Nome do aluno">
+        <input id="email" placeholder="E-mail">
+        <button class="btn-acao btn-azul" onclick="adicionar()">➕ Adicionar</button>
+    </div>
+
+    <table class="tabela-dados">
+        <thead>
+            <tr><th>ID</th><th>Nome</th><th>E-mail</th></tr>
+        </thead>
+        <tbody id="lista"></tbody>
+    </table>
+</div>`,
+            css: `.card-tela {
+    background: #1e293b;
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid #334155;
+}
+.linha-inputs {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+input {
+    padding: 8px 12px;
+    background: #0f172a;
+    border: 1px solid #475569;
+    border-radius: 6px;
+    color: #fff;
+}
+.btn-acao {
+    padding: 8px 14px;
+    border: none;
+    border-radius: 6px;
+    font-weight: 700;
+    cursor: pointer;
+    color: #fff;
+}
+.btn-azul { background: #0284c7; }
+
+.tabela-dados {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    font-size: 0.85rem;
+}
+.tabela-dados th, .tabela-dados td {
+    padding: 8px 12px;
+    border: 1px solid #334155;
+    text-align: left;
+}
+.tabela-dados th {
+    background: #0f172a;
+    color: #38bdf8;
+}`,
+            js: `let alunos = [];
+let proximoId = 1;
+
+function adicionar() {
+    const nomeInp = document.getElementById("nome");
+    const emailInp = document.getElementById("email");
+
+    if (!nomeInp.value || !emailInp.value) return alert("Preencha ambos os campos!");
+
+    // Adiciona no array em memória
+    alunos.push({
+        id: proximoId++,
+        nome: nomeInp.value,
+        email: emailInp.value
+    });
+
+    nomeInp.value = "";
+    emailInp.value = "";
+
+    listar();
+}
+
+function listar() {
+    const tbody = document.getElementById("lista");
+    tbody.innerHTML = ""; // Limpa a tabela antes de redesenhar
+
+    alunos.forEach(a => {
+        tbody.innerHTML += \`<tr>
+            <td>\${a.id}</td>
+            <td>\${a.nome}</td>
+            <td>\${a.email}</td>
+        </tr>\`;
+    });
+}`
+        },
+
+        // ==================== DEGRAU 4 ====================
+        {
+            id: 'degrau-4',
+            nome: 'Degrau 4: A Função Persistir() e Carregar()',
+            icone: '🟡',
+            categoria: 'Fase 2: CRUD Básico',
+            nivel: '🟡 Nível 4: Médio',
+            missao: 'Integrar a memória (o array) com o disco (LocalStorage). Duas funções vitais: <code>persistir()</code> salva o array atual; <code>carregar()</code> recupera o estado e calcula o <code>proximoId</code> correto.',
+            desafio: 'Adicione alunos e pressione o botão "Recarregar Estado" para simular que a página foi reiniciada.',
+            html: `<div class="card-tela">
+    <h3>Degrau 4: Sincronia de Memória e Disco</h3>
+    
+    <div class="linha-inputs">
+        <input id="nome" placeholder="Nome">
+        <input id="email" placeholder="E-mail">
+        <button class="btn-acao btn-azul" onclick="salvar()">Salvar Aluno</button>
+        <button class="btn-acao btn-verde" onclick="carregar()">🔄 Recarregar do Disco</button>
+    </div>
+
+    <table class="tabela-dados">
+        <thead><tr><th>ID</th><th>Nome</th><th>E-mail</th></tr></thead>
+        <tbody id="lista"></tbody>
+    </table>
+    <div class="legenda" id="statusPersistencia">Status: Carregado</div>
+</div>`,
+            css: `.card-tela {
+    background: #1e293b;
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid #334155;
+}
+.linha-inputs {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+input {
+    padding: 8px 12px;
+    background: #0f172a;
+    border: 1px solid #475569;
+    border-radius: 6px;
+    color: #fff;
+}
+.btn-acao {
+    padding: 8px 14px;
+    border: none;
+    border-radius: 6px;
+    font-weight: 700;
+    cursor: pointer;
+    color: #fff;
+}
+.btn-azul { background: #0284c7; }
+.btn-verde { background: #10b981; }
+
+.tabela-dados {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    font-size: 0.85rem;
+}
+.tabela-dados th, .tabela-dados td {
+    padding: 8px 12px;
+    border: 1px solid #334155;
+    text-align: left;
+}
+.tabela-dados th { background: #0f172a; color: #38bdf8; }
+.legenda { margin-top: 10px; font-family: monospace; font-size: 0.8rem; color: #94a3b8; }`,
+            js: `let alunos = [];
+let proximoId = 1;
+const CHAVE = "alunos_degrau4";
+
+// Salva o array atual no LocalStorage em formato JSON
+function persistir() {
+    localStorage.setItem(CHAVE, JSON.stringify(alunos));
+    document.getElementById("statusPersistencia").innerText = 
+        "Status: Gravado no LocalStorage às " + new Date().toLocaleTimeString();
+}
+
+// Carrega do LocalStorage e recalcula o próximo ID incremental
+function carregar() {
+    const salvo = localStorage.getItem(CHAVE);
+    if (salvo) {
+        alunos = JSON.parse(salvo);
+        // Calcula o próximo ID evitando duplicar:
+        proximoId = alunos.length ? Math.max(...alunos.map(a => a.id)) + 1 : 1;
+    }
+    listar();
+}
+
+function listar() {
+    const tbody = document.getElementById("lista");
+    tbody.innerHTML = "";
+    alunos.forEach(a => {
+        tbody.innerHTML += \`<tr><td>\${a.id}</td><td>\${a.nome}</td><td>\${a.email}</td></tr>\`;
+    });
+}
+
+function salvar() {
+    const n = document.getElementById("nome");
+    const e = document.getElementById("email");
+    if (!n.value) return;
+
+    alunos.push({ id: proximoId++, nome: n.value, email: e.value });
+    n.value = e.value = "";
+    
+    persistir();
+    listar();
+}
+
+carregar();`
+        },
+
+        // ==================== DEGRAU 5 ====================
+        {
+            id: 'degrau-5',
+            nome: 'Degrau 5: Editar e Excluir (Update e Delete)',
+            icone: '🟡',
+            categoria: 'Fase 2: CRUD Básico',
+            nivel: '🟡 Nível 5: Médio',
+            missao: 'Completando o CRUD: Usamos <code>idEditando</code> para saber se o botão Salvar está criando um novo registro ou editando um existente com <code>alunos.find()</code>. E deletamos com <code>alunos.filter()</code>.',
+            desafio: 'Clique no botão "Editar" de um aluno, altere o nome e clique em "Salvar" para ver a alteração in-place.',
+            html: `<div class="card-tela">
+    <h3>Degrau 5: CRUD Completo</h3>
+    
+    <div class="linha-inputs">
+        <input id="nome" placeholder="Nome">
+        <input id="email" placeholder="E-mail">
+        <button class="btn-acao btn-azul" id="btnSalvar" onclick="salvar()">Salvar</button>
+    </div>
+
+    <table class="tabela-dados">
+        <thead><tr><th>ID</th><th>Nome</th><th>E-mail</th><th>Ações</th></tr></thead>
+        <tbody id="lista"></tbody>
+    </table>
+</div>`,
+            css: `.card-tela {
+    background: #1e293b;
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid #334155;
+}
+.linha-inputs {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+input {
+    padding: 8px 12px;
+    background: #0f172a;
+    border: 1px solid #475569;
+    border-radius: 6px;
+    color: #fff;
+}
+.btn-acao {
+    padding: 8px 14px;
+    border: none;
+    border-radius: 6px;
+    font-weight: 700;
+    cursor: pointer;
+    color: #fff;
+}
+.btn-azul { background: #0284c7; }
+.btn-amarelo { background: #d97706; padding: 4px 8px; font-size: 0.75rem; }
+.btn-vermelho { background: #dc2626; padding: 4px 8px; font-size: 0.75rem; }
+
+.tabela-dados {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    font-size: 0.85rem;
+}
+.tabela-dados th, .tabela-dados td {
+    padding: 8px 12px;
+    border: 1px solid #334155;
+    text-align: left;
+}
+.tabela-dados th { background: #0f172a; color: #38bdf8; }`,
+            js: `let alunos = [
+    { id: 1, nome: "Carlos Silva", email: "carlos@gmail.com" },
+    { id: 2, nome: "Mariana Souza", email: "mariana@gmail.com" }
+];
+let idEditando = null;
+let proximoId = 3;
+const CHAVE = "alunos_degrau5";
+
+function persistir() {
+    localStorage.setItem(CHAVE, JSON.stringify(alunos));
+}
+
+function listar() {
+    const tbody = document.getElementById("lista");
+    tbody.innerHTML = "";
+    alunos.forEach(a => {
+        tbody.innerHTML += \`<tr>
+            <td>\${a.id}</td><td>\${a.nome}</td><td>\${a.email}</td>
+            <td>
+                <button class="btn-acao btn-amarelo" onclick="editar(\${a.id})">Editar</button>
+                <button class="btn-acao btn-vermelho" onclick="excluir(\${a.id})">Excluir</button>
+            </td>
+        </tr>\`;
+    });
+}
+
+function salvar() {
+    const n = document.getElementById("nome");
+    const e = document.getElementById("email");
+    if (!n.value) return;
+
+    if (idEditando) {
+        // MODO EDIÇÃO: Atualiza o existente
+        const a = alunos.find(x => x.id === idEditando);
+        a.nome = n.value;
+        a.email = e.value;
+        idEditando = null;
+        document.getElementById("btnSalvar").innerText = "Salvar";
+    } else {
+        // MODO CRIAÇÃO: Adiciona novo
+        alunos.push({ id: proximoId++, nome: n.value, email: e.value });
+    }
+
+    n.value = e.value = "";
+    persistir();
+    listar();
+}
+
+function editar(id) {
+    const a = alunos.find(x => x.id === id);
+    document.getElementById("nome").value = a.nome;
+    document.getElementById("email").value = a.email;
+    idEditando = id;
+    document.getElementById("btnSalvar").innerText = "Atualizar Registro #" + id;
+}
+
+function excluir(id) {
+    if (confirm("Deseja realmente excluir este aluno?")) {
+        // Remove pelo filtro: mantém todos que NÃO têm este id
+        alunos = alunos.filter(a => a.id !== id);
+        persistir();
+        listar();
+    }
+}
+
+listar();`
+        },
+
+        // ==================== DEGRAU 6 ====================
+        {
+            id: 'degrau-6',
+            nome: 'Degrau 6: Exportação e Download de JSON',
+            icone: '🟠',
+            categoria: 'Fase 3: I/O de Arquivos',
+            nivel: '🟠 Nível 6: Avançado',
+            missao: 'Aprender a converter dados de memória em um arquivo real baixável via navegador usando <code>new Blob()</code> e simulando um clique virtual com <code>URL.createObjectURL()</code>.',
+            desafio: 'Clique em "💾 Exportar JSON" e observe o download do arquivo de backup no seu computador.',
+            html: `<div class="card-tela">
+    <h3>Degrau 6: Gerando Arquivo para Download</h3>
+    <p>Cria um arquivo físico JSON a partir do LocalStorage:</p>
+
+    <div class="linha-inputs">
+        <button class="btn-acao btn-verde" onclick="exportar()">💾 Exportar Backup (.json)</button>
+    </div>
+
+    <div class="painel-status" id="saidaBlob">Pré-visualização do conteúdo do arquivo pronto para exportação...</div>
+</div>`,
+            css: `.card-tela {
+    background: #1e293b;
+    border-radius: 12px;
+    padding: 24px;
+    text-align: center;
+    border: 1px solid #334155;
+}
+.linha-inputs { margin-bottom: 16px; }
+.btn-acao {
+    padding: 10px 18px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 700;
+    cursor: pointer;
+    color: #fff;
+}
+.btn-verde { background: #10b981; }
+
+.painel-status {
+    background: #020617;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    padding: 14px;
+    color: #38bdf8;
+    font-family: monospace;
+    font-size: 0.85rem;
+    white-space: pre-wrap;
+    text-align: left;
+}`,
+            js: `const alunos = [
+    { id: 1, nome: "Ada Lovelace", email: "ada@computacao.org" },
+    { id: 2, nome: "Alan Turing", email: "alan@bletchley.uk" }
+];
+
+document.getElementById("saidaBlob").innerText = JSON.stringify(alunos, null, 2);
+
+function exportar() {
+    // 1. Gera o texto identado em formato JSON
+    const texto = JSON.stringify(alunos, null, 2);
+
+    // 2. Cria o arquivo binário em memória (Blob):
+    const blob = new Blob([texto], { type: "application/json" });
+
+    // 3. Cria uma tag <a> temporária invisível:
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "alunos_backup.json";
+
+    // 4. Executa o clique e descarta o link:
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(a.href);
+}`
+        },
+
+        // ==================== DEGRAU 7 ====================
+        {
+            id: 'degrau-7',
+            nome: 'Degrau 7: Importação com FileReader e Reset',
+            icone: '🟣',
+            categoria: 'Fase 3: I/O de Arquivos',
+            nivel: '🟣 Nível 7: Conclusão',
+            missao: 'Ler arquivos do computador do usuário com a API <code>FileReader</code>, validar se é um array de dados válido com <code>try/catch</code> e implementar a limpeza com <code>localStorage.removeItem()</code>.',
+            desafio: 'Exporte um arquivo no Degrau 6 e use o campo de importação abaixo para carregar seus dados.',
+            html: `<div class="card-tela">
+    <h3>Degrau 7: O Sistema Completo (Com I/O e Reset)</h3>
+
+    <div class="linha-inputs">
+        <input id="nome" placeholder="Nome">
+        <input id="email" placeholder="E-mail">
+        <button class="btn-acao btn-azul" id="btnSalvar" onclick="salvar()">Salvar</button>
+    </div>
+
+    <div class="linha-inputs barra-ferramentas">
+        <button class="btn-acao btn-verde" onclick="exportar()">💾 Exportar</button>
+        <label class="btn-acao btn-roxo">
+            📂 Importar JSON
+            <input type="file" accept=".json" onchange="importar(event)" style="display:none;">
+        </label>
+        <button class="btn-acao btn-vermelho" onclick="resetar()">🔄 Resetar Tudo</button>
+    </div>
+
+    <table class="tabela-dados">
+        <thead><tr><th>ID</th><th>Nome</th><th>E-mail</th><th>Ações</th></tr></thead>
+        <tbody id="lista"></tbody>
+    </table>
+</div>`,
+            css: `.card-tela {
+    background: #1e293b;
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid #334155;
+}
+.linha-inputs {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+}
+.barra-ferramentas {
+    border-top: 1px dashed #334155;
+    padding-top: 12px;
+}
+input {
+    padding: 8px 12px;
+    background: #0f172a;
+    border: 1px solid #475569;
+    border-radius: 6px;
+    color: #fff;
+}
+.btn-acao {
+    padding: 8px 14px;
+    border: none;
+    border-radius: 6px;
+    font-weight: 700;
+    cursor: pointer;
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+}
+.btn-azul { background: #0284c7; }
+.btn-verde { background: #10b981; }
+.btn-roxo { background: #8b5cf6; }
+.btn-vermelho { background: #dc2626; }
+.btn-amarelo { background: #d97706; padding: 4px 8px; font-size: 0.75rem; }
+
+.tabela-dados {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    font-size: 0.85rem;
+}
+.tabela-dados th, .tabela-dados td {
+    padding: 8px 12px;
+    border: 1px solid #334155;
+    text-align: left;
+}
+.tabela-dados th { background: #0f172a; color: #38bdf8; }`,
+            js: `let alunos = [];
+let idEditando = null;
+let proximoId = 1;
+const CHAVE = "alunos_degrau7_master";
+
+function carregar() {
+    const salvo = localStorage.getItem(CHAVE);
+    if (salvo) {
+        alunos = JSON.parse(salvo);
+        proximoId = alunos.length ? Math.max(...alunos.map(a => a.id)) + 1 : 1;
+    }
+    listar();
+}
+
+function persistir() {
+    localStorage.setItem(CHAVE, JSON.stringify(alunos));
+}
+
+function listar() {
+    const tbody = document.getElementById("lista");
+    tbody.innerHTML = "";
+    alunos.forEach(a => {
+        tbody.innerHTML += \`<tr>
+            <td>\${a.id}</td><td>\${a.nome}</td><td>\${a.email}</td>
+            <td>
+                <button class="btn-acao btn-amarelo" onclick="editar(\${a.id})">Editar</button>
+                <button class="btn-acao btn-vermelho" onclick="excluir(\${a.id})">Excluir</button>
+            </td>
+        </tr>\`;
+    });
+}
+
+function salvar() {
+    const n = document.getElementById("nome");
+    const e = document.getElementById("email");
+    if (!n.value) return alert("Preencha o nome!");
+
+    if (idEditando) {
+        const a = alunos.find(x => x.id === idEditando);
+        a.nome = n.value;
+        a.email = e.value;
+        idEditando = null;
+        document.getElementById("btnSalvar").innerText = "Salvar";
+    } else {
+        alunos.push({ id: proximoId++, nome: n.value, email: e.value });
+    }
+
+    n.value = e.value = "";
+    persistir();
+    listar();
+}
+
+function editar(id) {
+    const a = alunos.find(x => x.id === id);
+    document.getElementById("nome").value = a.nome;
+    document.getElementById("email").value = a.email;
+    idEditando = id;
+    document.getElementById("btnSalvar").innerText = "Atualizar #" + id;
+}
+
+function excluir(id) {
+    if (confirm("Excluir este aluno?")) {
+        alunos = alunos.filter(a => a.id !== id);
+        persistir();
+        listar();
+    }
+}
+
+function exportar() {
+    const texto = JSON.stringify(alunos, null, 2);
+    const blob = new Blob([texto], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "alunos.json";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(a.href);
+}
+
+function importar(evento) {
+    const arquivo = evento.target.files[0];
+    if (!arquivo) return;
+
+    const leitor = new FileReader();
+    leitor.onload = () => {
+        try {
+            const dados = JSON.parse(leitor.result);
+            if (!Array.isArray(dados)) throw new Error("O JSON precisa conter uma lista []");
+
+            alunos = dados;
+            proximoId = alunos.length ? Math.max(...alunos.map(a => a.id)) + 1 : 1;
+
+            persistir();
+            listar();
+            alert("Sucesso! " + alunos.length + " alunos importados.");
+        } catch (e) {
+            alert("Falha ao importar: " + e.message);
+        }
+    };
+    leitor.readAsText(arquivo);
+}
+
+function resetar() {
+    if (!confirm("Tem certeza que deseja apagar todo o banco de dados local?")) return;
+    localStorage.removeItem(CHAVE);
+    alunos = [];
+    proximoId = 1;
+    listar();
+}
+
+carregar();`
+        }
+    ];
+
+    /* ============================================================
+       RENDERIZAÇÃO DA SIDEBAR
+       ============================================================ */
+    const categorias = [...new Set(COMPONENTES.map(c => c.categoria))];
+    const sidebarNav = document.getElementById('sidebarNav');
+
+    categorias.forEach(cat => {
+        const titulo = document.createElement('div');
+        titulo.className = 'categoria-titulo';
+        titulo.textContent = cat;
+        sidebarNav.appendChild(titulo);
+
+        COMPONENTES.filter(c => c.categoria === cat).forEach(comp => {
+            const btn = document.createElement('button');
+            btn.className = 'sidebar-item';
+            btn.dataset.id = comp.id;
+            btn.innerHTML = `<span class="icone">${comp.icone}</span> ${comp.nome}`;
+            btn.onclick = () => mostrarDegrau(comp.id);
+            sidebarNav.appendChild(btn);
+        });
+    });
+
+    document.getElementById('badgeTotal').textContent = COMPONENTES.length;
+
+    /* ============================================================
+       RENDERIZAÇÃO DO DEGRAU ATIVO COM PREVIEW E ABAS
+       ============================================================ */
+    const conteudoPrincipal = document.getElementById('conteudoPrincipal');
+    let htmlCompletoAtual = '';
+
+    function mostrarDegrau(id) {
+        const comp = COMPONENTES.find(c => c.id === id);
+        if (!comp) return;
+
+        document.querySelectorAll('.sidebar-item').forEach(b => b.classList.remove('ativo'));
+        const btnAtivo = document.querySelector(`.sidebar-item[data-id="${id}"]`);
+        if (btnAtivo) btnAtivo.classList.add('ativo');
+
+        fecharMenu();
+
+        const htmlCompleto = `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>${comp.nome}</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #0f172a;
+    color: #f1f5f9;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+}
+${comp.css}
+</style>
+</head>
+<body>
+${comp.html}
+<script>
+${comp.js}
+<\/script>
+</body>
+</html>`;
+
+        htmlCompletoAtual = htmlCompleto;
+
+        conteudoPrincipal.innerHTML = `
+            <div class="main-header">
+                <h1>${comp.icone} ${comp.nome}</h1>
+                <span class="meta-degrau">${comp.nivel}</span>
+            </div>
+
+            <div class="card-missao">
+                🎯 <strong>O que você aprende neste degrau:</strong><br>
+                ${comp.missao}
+            </div>
+
+            <div class="card-missao" style="border-left-color: #f59e0b;">
+                💡 <strong>Desafio Didático:</strong><br>
+                ${comp.desafio}
+            </div>
+
+            <button class="btn-nova-aba" onclick="abrirEmNovaAba()">
+                🚀 Abrir este degrau em Nova Aba
+            </button>
+
+            <!-- PREVIEW EM IFRAME -->
+            <div class="preview-wrapper">
+                <div class="preview-header">
+                    <div>
+                        <span class="ponto vermelho"></span>
+                        <span class="ponto amarelo"></span>
+                        <span class="ponto verde"></span>
+                    </div>
+                    <span class="preview-titulo">preview-${comp.id}.html</span>
+                    <span style="width:40px;"></span>
+                </div>
+                <iframe class="preview-iframe" id="previewIframe"></iframe>
+            </div>
+
+            <!-- ABAS DE CÓDIGO -->
+            <div class="abas">
+                <button class="aba ativa" onclick="trocarAba(this, 'html')">📄 HTML</button>
+                <button class="aba" onclick="trocarAba(this, 'css')">🎨 CSS</button>
+                <button class="aba" onclick="trocarAba(this, 'js')">⚙️ JS</button>
+                <button class="aba" onclick="trocarAba(this, 'tudo')">📦 Código Completo</button>
+            </div>
+
+            <div class="bloco-codigo ativo" id="aba-html">
+                <button class="btn-copiar" onclick="copiarAba('aba-html', this)">📋 Copiar HTML</button>
+                <pre>${escapeHtml(comp.html)}</pre>
+            </div>
+            <div class="bloco-codigo" id="aba-css">
+                <button class="btn-copiar" onclick="copiarAba('aba-css', this)">📋 Copiar CSS</button>
+                <pre>${escapeHtml(comp.css)}</pre>
+            </div>
+            <div class="bloco-codigo" id="aba-js">
+                <button class="btn-copiar" onclick="copiarAba('aba-js', this)">📋 Copiar JS</button>
+                <pre>${escapeHtml(comp.js)}</pre>
+            </div>
+            <div class="bloco-codigo" id="aba-tudo">
+                <button class="btn-copiar" onclick="copiarAba('aba-tudo', this)">📋 Copiar Tudo</button>
+                <pre>${escapeHtml(htmlCompleto)}</pre>
+            </div>
+        `;
+
+        const iframe = document.getElementById('previewIframe');
+        iframe.srcdoc = htmlCompleto;
+
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function abrirEmNovaAba() {
+        const blob = new Blob([htmlCompletoAtual], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        window.open(url, '_blank');
+    }
+
+    function trocarAba(btn, tipo) {
+        document.querySelectorAll('.aba').forEach(b => b.classList.remove('ativa'));
+        document.querySelectorAll('.bloco-codigo').forEach(b => b.classList.remove('ativo'));
+        btn.classList.add('ativa');
+        document.getElementById('aba-' + tipo).classList.add('ativo');
+    }
+
+    function copiarAba(idAba, btn) {
+        const texto = document.getElementById(idAba).querySelector('pre').innerText;
+        navigator.clipboard.writeText(texto).then(() => {
+            const orig = btn.textContent;
+            btn.textContent = '✅ Copiado!';
+            setTimeout(() => btn.textContent = orig, 1800);
+        });
+    }
+
+    function escapeHtml(txt) {
+        return txt
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+    }
+
+    function toggleMenu() {
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlayMenu');
+        const btnFlutuante = document.getElementById('btnMenuFlutuante');
+
+        const aberto = sidebar.classList.contains('aberta');
+        if (aberto) {
+            sidebar.classList.remove('aberta');
+            overlay.classList.remove('ativo');
+            btnFlutuante.innerHTML = '☰ <span class="badge" id="badgeTotal">' + COMPONENTES.length + '</span>';
+        } else {
+            sidebar.classList.add('aberta');
+            overlay.classList.add('ativo');
+            btnFlutuante.innerHTML = '✕';
+        }
+    }
+
+    function fecharMenu() {
+        document.getElementById('sidebar').classList.remove('aberta');
+        document.getElementById('overlayMenu').classList.remove('ativo');
+        document.getElementById('btnMenuFlutuante').innerHTML =
+            '☰ <span class="badge" id="badgeTotal">' + COMPONENTES.length + '</span>';
+    }
+
+    function voltarAoInicioPrincipal() {
+        document.getElementById('inicioPrincipal').scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+        });
+    }
+
+    window.addEventListener('scroll', () => {
+        const btn = document.getElementById('btnTopo');
+        if (window.scrollY > 350) btn.classList.remove('oculto');
+        else btn.classList.add('oculto');
+    });
+
+    // Inicia no Degrau 1
+    mostrarDegrau(COMPONENTES[0].id);
+</script>
+
+</body>
+</html>
